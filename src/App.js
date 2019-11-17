@@ -201,7 +201,7 @@ class App extends React.Component {
 								}}
 							/>
 							<Route
-								path={`/${companyCode}/companies`}
+								path={`/companies`}
 								render={() => {
 									setPageBackground('#f4f5f7');
 									this.setTitle(`Setup | ${companyName}`);
@@ -213,7 +213,7 @@ class App extends React.Component {
 								}}
 							/>
 							<Route
-								path={`/${companyCode}/users`}
+								path={`/users`}
 								render={() => {
 									setPageBackground('#f4f5f7');
 									this.setTitle(`Users | ${companyName}`);
