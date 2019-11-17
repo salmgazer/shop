@@ -822,7 +822,6 @@ const Sales = (props) => {
 						<button className="nav-item active" onClick={() => history.push('sales')}>Sales</button>
 						<button className="nav-item" onClick={() => history.push('customers')}>Customers</button>
 						<button className="nav-item" onClick={() => history.push('dashboard')}>Dashboard</button>
-						<button onClick={() => clearAll()}>Clear</button>
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push('products')}>

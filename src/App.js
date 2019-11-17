@@ -132,7 +132,7 @@ class App extends React.Component {
 							<Route
 								path={`/${companyCode}/home`}
 								render={() => {
-									this.setTitle(`Control Pabel | ${companyName} || 'Shop Master`);
+									this.setTitle(`Control Panel | ${companyName || 'Shop Master'}`);
 									setPageBackground('#F7F9FD');
 									return <Control />;
 								}}
