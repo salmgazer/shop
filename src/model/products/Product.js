@@ -1,5 +1,6 @@
 import { Model } from '@nozbe/watermelondb';
-import { field, date, text, readonly, relation } from '@nozbe/watermelondb/decorators';
+import { field, date, text, readonly, relation, children } from '@nozbe/watermelondb/decorators';
+import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 export default class Product extends Model {
   static table = 'products';
@@ -8,6 +9,7 @@ export default class Product extends Model {
     brands: { type: 'belongs_to', key: 'brand_id' },
     categories: { type: 'belongs_to', key: 'category_id' },
 		users: { type: 'belongs_to', key: 'created_by' },
+		productPrices: { type: 'has_many', foreignKey: 'product_id' }
   };
 
   @field('name') name;
@@ -25,4 +27,8 @@ export default class Product extends Model {
 	async remove() {
 		await this.markAsDeleted(); // syncable
 	}
+
+	productPrices = this.collections
+		.get('product_prices')
+		.query(Q.where('product_id', this.id), Q.where('quantity', Q.gt(0)));
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import pluralize from 'pluralize';
 import {
-	Button, Dialog, Icon, Pane, SideSheet, Combobox, SearchInput
+	Button, Dialog, Pane, SideSheet, Combobox, SearchInput
 } from 'evergreen-ui';
 import Grid from '@material-ui/core/Grid';
 import Component from "@reactions/component";
@@ -11,14 +11,60 @@ import 'date-fns';
 import {withDatabase} from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from '@material-ui/core/Chip';
+import { List, Typography, Table, Divider, Tag, Icon  } from 'antd';
 
 const CardListItem = (props) => {
-	const {entry, company, removeProductPrice, saveProductPrice, user, productPrices, category, brand, brands, categories, EditComponent, deleteRecord, updateRecord, keyFieldName, modelName, displayNameField, fieldNames, database} = props;
+	const {entry, company, saleEntries, customer, removeProductPrice, saveProductPrice, user, productPrices, category, brand, brands, categories, EditComponent, deleteRecord, updateRecord, keyFieldName, modelName, displayNameField, fieldNames, database} = props;
 
 	let totalQuantity = 0;
-	productPrices.forEach(productPrice => {
+	[].forEach(productPrice => {
 		totalQuantity += productPrice.quantity;
 	});
+
+	console.log("!!!!!!!!!!!!!!!!!!!!");
+	console.log(saleEntries);
+	console.log("!!!!!!!!!!!!!!!!!!!!");
+
+	const columns = [
+		{
+			title: 'Product',
+			dataIndex: 'productName',
+			key: 'productName',
+		},
+		{
+			title: 'Quantity',
+			dataIndex: 'quantity',
+			key: 'quantity',
+		},
+		{
+			title: 'Selling Price (GH₵)',
+			dataIndex: 'sellingPrice',
+			key: 'sellingPrice',
+		},
+		{
+			title: 'Total (GH₵)',
+			dataIndex: 'total',
+			key: 'total',
+		}
+	];
+
+
+	const dataSource = saleEntries.map(async saleEntry => {
+		const product = await saleEntry.product.fetch();
+		return {
+			key: saleEntry.id,
+			productName: product.name,
+			quantity: saleEntry.quantity,
+			sellingPrice: saleEntry.sellingPrice,
+			total: saleEntry.total
+		};
+	});
+
+	let totalSales = 0;
+	saleEntries.forEach(se => {
+		totalSales += se.total;
+	});
+
 
 	return (
 		<Grid container spacing={1}>
@@ -31,8 +77,27 @@ const CardListItem = (props) => {
 								onCloseComplete={() => setState({ isShown: false })}
 							>
 								<div style={{ width: '80%', margin: '0 auto'}}>
-									<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Details of {modelName}</h3>
+									<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Details of {capitalize(entry.type)}</h3>
+									<Table
+										columns={columns}
+										dataSource={saleEntries.map(saleEntry => {
+											// const product = await saleEntry.product.fetch();
+											const value = {
+												key: saleEntry._raw.id,
+												productName: saleEntry.productName,
+												quantity: saleEntry._raw.quantity,
+												sellingPrice: saleEntry._raw.selling_price,
+												total: saleEntry._raw.total
+											};
+											console.log("%%%%%%%%%%%%%%%");
+											console.log(entry);
+											console.log("%%%%%%%%%%%%%%%");
+											return value;
+										})}
+									/>
+
 									{
+										/*
 										fieldNames.map(field => {
 												let value = entry[field.name];
 												if (typeof value === 'object') {
@@ -55,34 +120,26 @@ const CardListItem = (props) => {
 													: {<Chip label={value} variant="outlined" /> || ''}</div>
 											}
 										)
+										*/
 									}
 									<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
-										<b style={{fontWeight: '300'}}>Quantity</b>
-										: {<Chip label={totalQuantity} variant="outlined" /> || ''}
+										<b style={{fontWeight: '300'}}>Total: GH₵ {totalSales}</b>
 									</div>
-									<Pane>
-										<Dialog
-											isShown={state.viewPrices}
-											title={`Cost Prices for ${entry.name}`}
-											onCloseComplete={() => setState({ viewPrices: false })}
-											hasFooter={false}
-										>
-											{
-												productPrices.map(productPrice =>
-													<Grid style={{marginBottom: '20px'}} key={productPrice.id} container spacing={1} className="product_price_item">
-														<Grid item>
-															Price <Chip label={`GH₵ ${productPrice.price}`} variant="outlined" />
-														</Grid>
-														<Grid item style={{marginLeft: '70px'}}>
-															Quantity <Chip label={productPrice.quantity} variant="outlined" />
-														</Grid>
-													</Grid>
-												)
-											}
-										</Dialog>
-										<Button onClick={() => setState({ viewPrices: true })}>View Cost Prices of Product</Button>
-									</Pane>
-									<div style={{ margin: '0 auto', marginTop: '60px'}}>
+									{entry.discount && entry.discount > 0 ?
+										<div>
+											<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
+												<b style={{fontWeight: '300'}}>Discount: GH₵ {entry.discount}</b>
+											</div>
+											<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
+												<b style={{fontWeight: '300'}}>Total before discount: GH₵ {totalSales - entry.discount}</b>
+											</div>
+										</div>
+										: ''
+									}
+									<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
+										<b style={{fontWeight: '300'}}>Customer: <Chip label={customer.name} variant="outlined" /></b>
+									</div>
+									<div style={{ margin: '0 auto', marginTop: '60px', marginBottom: '70px'}}>
 										<Button>Edit
 											<EditComponent
 												row={entry}
@@ -148,7 +205,7 @@ const CardListItem = (props) => {
 									Are you sure you want to delete the {pluralize.singular(modelName)} <b style={{color: 'red'}}>{entry[displayNameField]}</b>?
 								</Dialog>
 
-								<Icon icon="trash" size={20} color='muted' className="hand-pointer" onClick={() => setState({ isShown: true })}/>
+								<Icon type="delete" size={"large"} color='muted' className="hand-pointer" onClick={() => setState({ isShown: true })}/>
 							</Pane>
 						)}
 					</Component>
@@ -161,9 +218,9 @@ const CardListItem = (props) => {
 
 const EnhancedCardListItem = withDatabase(withObservables ([], ({database, modelName, entry }) => ({
 	entry: database.collections.get(`${pluralize(modelName)}`).findAndObserve(entry.id),
-	brand: entry.brand,
-	category: entry.category,
-	productPrices: entry.productPrices.observe()
+	customer: entry.customer.observe(),
+	saleEntries: entry.saleEntries.observe(),
+	createdBy: entry.createdBy
 }))(CardListItem));
 
 class CardList extends React.Component {

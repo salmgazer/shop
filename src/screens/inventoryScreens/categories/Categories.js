@@ -78,11 +78,13 @@ const CreateComponent = (props) => {
 											header: true,
 											dynamicTyping: true,
 											complete: function(results) {
-												const data = results.data;
+												const items = results.data;
 												toaster.notify(
 													'Importing records... please wait patiently'
 												);
-												console.log(data)
+												items.forEach( item => {
+													createRecord(item);
+												});
 											}
 										});
 									}
@@ -143,6 +145,12 @@ const Categories = (props) => {
 
 	const createRecord = async (categoryToCreate) => {
 		await database.action(async () => {
+			const existingBrand = await categoriesCollection.query(Q.where('name', categoryToCreate.name)).fetch();
+			if (existingBrand[0]) {
+				toaster.warning(`Category ${categoryToCreate.name} already exists`);
+				return;
+			}
+
 			const newCategory = await categoriesCollection.create(category => {
 				category.name = categoryToCreate.name;
 				category.createdBy.set(user);

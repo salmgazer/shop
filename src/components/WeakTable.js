@@ -113,7 +113,7 @@ const CardListItem = (props) => {
 
 const EnhancedCardListItem = withDatabase(withObservables ([], ({database, modelName, entry }) => ({
 	entry: database.collections.get(`${pluralize(modelName)}`).findAndObserve(entry.id),
-	owner: entry.owner.fetch()
+	//owner: entry.owner.fetch()
 }))(CardListItem));
 
 class CardList extends React.Component {

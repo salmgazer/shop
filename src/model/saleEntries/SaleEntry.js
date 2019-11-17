@@ -10,10 +10,14 @@ export default class SaleEntry extends Model {
 		sales: { type: 'belongs_to', key: 'sale_id' }
 	};
 
-	@field('quantity') note;
+	@field('quantity') quantity;
 	@field('type') type; // sold or returned
 	@field('selling_price') sellingPrice;
+	@field('cost_price') costPrice;
+	@field('total') total;
+	@field('product_name') productName;
 	@relation('products', 'product_id') product;
+	@relation('sales', 'sale_id') sale;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;
 

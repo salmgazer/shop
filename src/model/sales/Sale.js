@@ -1,5 +1,6 @@
 import { Model } from '@nozbe/watermelondb';
-import {field, date, readonly, relation, children} from '@nozbe/watermelondb/decorators';
+import {field, date, readonly, relation, children, lazy} from '@nozbe/watermelondb/decorators';
+import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 export default class Sale extends Model {
 	static table = 'sales';
@@ -13,12 +14,16 @@ export default class Sale extends Model {
 
 	@field('note') note;
 	@field('type') type; // invoice or sale
+	@field('discount') discount;
 	@relation('customers', 'customer_id') customer;
 	@relation('users', 'created_by') createdBy;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;
 
-	@children('sale_entries') saleEntries;
+
+	@lazy
+	saleEntries = this.collections
+		.get('sale_entries').query(Q.where('sale_id', this.id));
 
 	async remove() {
 		await this.markAsDeleted(); // syncable

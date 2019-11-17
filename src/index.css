@@ -6,7 +6,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* background-color: #292d3e; */
-  background: url("resources/2.jpg") no-repeat;
+  /*background: url("resources/2.jpg") no-repeat;*/
   background-size: cover;
   overflow-y: hidden;
 }
@@ -14,4 +14,16 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+.css-yrjgl1, [data-css-yrjgl1] {
+  background-color: red !important;
+}
+
+.css-xeqldi::before, [data-css-xeqldi]::before, .css-xeqldi[data-simulate-before], [data-css-xeqldi][data-simulate-before] {
+  width: 0% !important;
+}
+
+button:focus {
+  outline:0;
 }

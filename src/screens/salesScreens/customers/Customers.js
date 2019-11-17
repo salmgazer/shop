@@ -104,7 +104,7 @@ const EditComponent = (props) => {
 								value={state.newCustomerName}
 								onChange={(e) => setState({newCustomerName: e.target.value})}
 								placeholder="Name of customer"
-								style={{marginBottom: '20px', fontSize: '25px', height: '50px'}}
+								style={{marginBottom: '20px'}}
 							/>
 							<TextInput
 								required
@@ -112,14 +112,14 @@ const EditComponent = (props) => {
 								value={state.newCustomerPhone}
 								onChange={(e) => setState({newCustomerPhone: e.target.value})}
 								placeholder="Phone number of customer"
-								style={{marginBottom: '20px', fontSize: '25px', height: '50px'}}
+								style={{marginBottom: '20px'}}
 							/>
 							<Textarea
 								name="note"
 								value={state.newCustomerNotes}
 								onChange={(e) => setState({newCustomerNotes: e.target.value})}
 								placeholder="Note about customer"
-								style={{marginBottom: '20px', fontSize: '25px'}}
+								style={{marginBottom: '20px'}}
 							/>
 							<div style={{ margin: '0 auto', marginTop: '20px'}}>
 								<Button onClick={() => setState({ isShown: false })} intent='danger'>Cancel</Button>

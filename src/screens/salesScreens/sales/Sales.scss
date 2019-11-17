@@ -1,0 +1,179 @@
+#add-item {
+    margin: 10px auto 20px;
+    text-align: center;
+    button {
+        font-size: 30px;
+        height: 60px;
+        width: 90%;
+        background-color: #09d3ac;
+        border: 4px solid whitesmoke;
+        color: white;
+        &:hover {
+        }
+    }
+}
+
+
+#calculator-view {
+    text-align: center;
+    width: 400px;
+    margin: 30px auto;
+    box-shadow: 0 16px 32px 0 rgba(0,0,0,0.2);
+    padding: 50px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.sale-entry {
+    padding: 5px 5px 5px 30px;
+    border-bottom: 1px solid #c8cfc9;
+    width: 90%;
+    margin-left: 50px;
+}
+
+#select-customer {
+    text-align: center;
+    margin-top: 150px;
+}
+
+
+#receipt-div {
+    .clearfix:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    a {
+        color: #5D6975;
+        text-decoration: underline;
+    }
+
+    body {
+        position: relative;
+        width: 21cm;
+        height: 29.7cm;
+        margin: 0 auto;
+        color: #001028;
+        background: #FFFFFF;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        font-family: Arial;
+    }
+
+    header {
+        padding: 10px 0;
+        margin-bottom: 30px;
+    }
+
+    #logo {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    #logo img {
+        width: 90px;
+    }
+
+    h1 {
+        border-top: 1px solid  #5D6975;
+        border-bottom: 1px solid  #5D6975;
+        color: #5D6975;
+        font-size: 2.4em;
+        line-height: 1.4em;
+        font-weight: normal;
+        text-align: center;
+        margin: 0 0 20px 0;
+        background: url(dimension.png);
+    }
+
+    #project {
+        float: left;
+        margin-left: 10px;
+    }
+
+    #project span {
+        color: #5D6975;
+        text-align: right;
+        width: 52px;
+        margin-right: 10px;
+        display: inline-block;
+        font-size: 0.8em;
+    }
+
+    #company {
+        float: right;
+        text-align: right;
+        margin-right: 20px;
+    }
+
+    #project div,
+    #company div {
+        white-space: nowrap;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin-bottom: 20px;
+    }
+
+    table tr:nth-child(2n-1) td {
+        background: #F5F5F5;
+    }
+
+    table th,
+    table td {
+        text-align: center;
+    }
+
+    table th {
+        padding: 5px 20px;
+        color: #5D6975;
+        border-bottom: 1px solid #C1CED9;
+        white-space: nowrap;
+        font-weight: normal;
+    }
+
+    table .service,
+    table .desc {
+        text-align: left;
+    }
+
+    table td {
+        padding: 20px;
+        text-align: right;
+    }
+
+    table td.service,
+    table td.desc {
+        vertical-align: top;
+    }
+
+    table td.unit,
+    table td.qty,
+    table td.total {
+        font-size: 1.2em;
+    }
+
+    table td.grand {
+        border-top: 1px solid #5D6975;;
+    }
+
+    #notices .notice {
+        color: #5D6975;
+        font-size: 1.2em;
+    }
+
+    footer {
+        color: #5D6975;
+        width: 100%;
+        height: 30px;
+        position: absolute;
+        bottom: 0;
+        border-top: 1px solid #C1CED9;
+        padding: 8px 0;
+        text-align: center;
+    }
+}

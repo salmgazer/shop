@@ -8,9 +8,10 @@ import userCompanySchema from "./userCompanies/userCompanySchema";
 import customerSchema from "./customers/customerSchema";
 import salesSchema from "./sales/saleSchema";
 import salesEntrySchema from "./saleEntries/saleEntrySchema";
+import productPricesSchema from "./productPrices/productPriceSchema";
 
 export default appSchema({
-  version: 2,
+  version: 7,
   tables: [
     tableSchema(companySchema),
     tableSchema(userSchema),
@@ -20,6 +21,7 @@ export default appSchema({
     tableSchema(userCompanySchema),
     tableSchema(customerSchema),
     tableSchema(salesSchema),
-    tableSchema(salesEntrySchema)
+    tableSchema(salesEntrySchema),
+    tableSchema(productPricesSchema)
   ]
 });

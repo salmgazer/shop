@@ -31,7 +31,7 @@ const fieldNames = [
 ];
 
 const CreateComponent = (props) => {
-	const {createRecord} = props;
+	const {createRecord, database, model} = props;
 	return (
 		<Component initialState={{ isShown: false, newBrandName: '', newBrandNotes: '' }}>
 			{({ state, setState }) => (
@@ -83,11 +83,13 @@ const CreateComponent = (props) => {
 											header: true,
 											dynamicTyping: true,
 											complete: function(results) {
-												const data = results.data;
+												const items = results.data;
 												toaster.notify(
 													'Importing records... please wait patiently'
 												);
-												console.log(data)
+												items.forEach( item => {
+													createRecord(item);
+												});
 											}
 										});
 									}
@@ -155,6 +157,11 @@ const Brands = (props) => {
 
 	const createRecord = async (brandToCreate) => {
 		await database.action(async () => {
+			const existingBrand = await brandsCollection.query(Q.where('name', brandToCreate.name)).fetch();
+			if (existingBrand[0]) {
+				toaster.warning(`Brand ${brandToCreate.name} already exists`);
+				return;
+			}
 			const newBrand = await brandsCollection.create(brand => {
 				brand.name = brandToCreate.name;
 				brand.notes = brandToCreate.notes;

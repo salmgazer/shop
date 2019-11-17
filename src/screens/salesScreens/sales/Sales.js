@@ -1,7 +1,8 @@
-import React from 'react';
+import "antd/dist/antd.css";
+import React, { useRef } from 'react';
 import {withDatabase} from '@nozbe/watermelondb/DatabaseProvider';
 import withObservables from '@nozbe/with-observables';
-import './Sales.css';
+import './Sales.scss';
 import { withRouter } from 'react-router-dom';
 import Component from "@reactions/component";
 import { Q } from '@nozbe/watermelondb';
@@ -9,82 +10,553 @@ import PropTypes from 'prop-types';
 import pluralize from 'pluralize';
 import {
 	SideSheet,
-	Button,
 	TextInput,
 	Textarea,
-	Icon,
-	toaster, Popover, Position, Menu, Avatar
+	Popover, Position, Menu, Avatar, SelectMenu,
+	Dialog, Pane, toaster
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
-import CardList from "../../../components/CardList";
+import SalesCardList from "../../../components/SalesCardList";
 import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";
 import Company from "../../../model/companies/Company";
 import Sale from "../../../model/sales/Sale";
+import Grid from "@material-ui/core/Grid/Grid";
+import { makeStyles } from '@material-ui/core/styles';
+import Product from "../../../model/products/Product";
+import Chip from "@material-ui/core/Chip/Chip";
+import Customer from "../../../model/customers/Customer";
+import ReactToPrint from 'react-to-print';
+import SaleEntry from "../../../model/saleEntries/SaleEntry";
+import ProductPrice from "../../../model/productPrices/ProductPrice";
+import salesEntrySchema from "../../../model/saleEntries/saleEntrySchema";
+import productPricesSchema from "../../../model/productPrices/productPriceSchema";
+import { InputNumber, Select, Button, Icon } from 'antd';
+const { Option } = Select;
 
 const fieldNames = [
-	{name: 'name', label: 'Name', type: 'string' },
-	{name: 'note', label: 'Note', type: 'string' },
+	{name: 'discount', label: 'Discount', type: 'number' },
+	{name: 'customer', label: 'Customer'},
 	{name: 'createdBy', label: 'Created By', type: 'string' },
 	{name: 'phone', label: 'Phone', type: 'string' },
 	{name: 'createdAt', label: 'Created', type: 'string' },
 	{name: 'updatedAt', label: 'Updated', type: 'string' }
 ];
 
-const CreateComponent = (props) => {
-	const {createRecord} = props;
-	return (
-		<Component initialState={{ isShown: false, newSaleName: '', newSaleNotes: '', newSalePhone: '' }}>
-			{({ state, setState }) => (
-				<React.Fragment>
-					<SideSheet
-						isShown={state.isShown}
-						onCloseComplete={() => setState({ isShown: false })}
-					>
-						<div style={{ width: '80%', margin: '0 auto'}}>
-							<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Create new Sale</h3>
-							<label>Name: &nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="name"
-								value={state.newSaleName}
-								onChange={(e) => setState({newSaleName: e.target.value})}
-								placeholder="Name of Sale"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Phone: &nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="phone"
-								value={state.newSalePhone}
-								onChange={(e) => setState({newSalePhone: e.target.value})}
-								placeholder="Phone number of sale"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Note about sale:</label><br/>
-							<Textarea
-								name="note"
-								value={state.newSaleNotes}
-								onChange={(e) => setState({newSaleNotes: e.target.value})}
-								placeholder="Note about sale"
-							/>
-							<div style={{ margin: '0 auto', marginTop: '50px'}}>
-								<Button onClick={() => setState({ isShown: false })} intent='danger'>Cancel</Button>
-								<Button onClick={async () => {
-									await createRecord({ name: state.newSaleName, note: state.newSaleNotes, phone: state.newSalePhone });
-									setState({ isShown: false, newSaleName: '', newSaleNotes: '', newSalePhone: '' })
-								}} intent='success' style={{marginLeft: '20px'}}>Save</Button>
-							</div>
+
+class ComponentToPrint extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		const {saleEntries, discount, customer, customers, company, products, saleTotal} = this.props;
+		const currentCustomer = customer ? customers.find(c => c.id === customer) : null;
+		return (
+			<div id="receipt-div">
+				<header className="clearfix">
+					{/*
+					<div id="logo">
+						<img src="./logo.png" />
+					</div>
+					*/}
+					<h1>{company.name}</h1>
+					<div id="company" className="clearfix">
+						<div>{company.name}</div>
+						<div>{company.locationName}</div>
+						<div>{company.phone}</div>
+						<div><a href={`mailto:${company.email}`}>{company.email}</a></div>
+						<div>{new Date().toLocaleString('en-US')}</div>
+					</div>
+
+						{
+							currentCustomer ?
+								<div id="project">
+									<div><span>Customer</span>{currentCustomer.name}</div>
+									<div><span>Phone</span>{currentCustomer.phone}</div>
+								</div> : ''
+						}
+
+					{/*
+					<div id="project">
+						<div><span>Customer</span>logo.png</div>
+						<div><span>CLIENT</span> John Doe</div>
+						<div><span>ADDRESS</span> 796 Silver Harbour, TX 79273, US</div>
+						<div><span>EMAIL</span> <a href="mailto:john@example.com">john@example.com</a></div>
+						<div><span>DATE</span> August 17, 2015</div>
+						<div><span>DUE DATE</span> September 17, 2015</div>
+					</div>
+					*/}
+				</header>
+				<main>
+					<table>
+						<thead>
+						<tr>
+							<th className="service">Product</th>
+							<th className="desc">DESCRIPTION</th>
+							<th>PRICE</th>
+							<th>QTY</th>
+							<th>TOTAL</th>
+						</tr>
+						</thead>
+						<tbody>
+						{
+							saleEntries.map(saleEntry => {
+								const product = products.find(p => p.id === saleEntry.productId);
+									return (
+										<tr key={product.id}>
+										<td className="service">{product.name}</td>
+										<td className="desc">{product.description}</td>
+										<td className="unit">{saleEntry.sellingPrice}</td>
+										<td className="qty">{saleEntry.quantity}</td>
+										<td className="total">{saleEntry.total}</td>
+									</tr>
+									)
+								}
+							)
+						}
+						{
+							discount && discount > 0 ?
+								<tr>
+									<td colSpan="4" className="grand total">Discount</td>
+									<td className="grand total">GHS {discount}</td>
+								</tr> : ''
+						}
+						{
+							discount && discount > 0 ?
+							<tr>
+								<td colSpan="4" className="grand total">TOTAL BEFORE DISCOUNT</td>
+								<td className="grand total">GHS {saleTotal}</td>
+							</tr> : ''
+						}
+						<tr>
+							<td colSpan="4" className="grand total">GRAND TOTAL</td>
+							<td className="grand total">GHS {saleTotal - discount}</td>
+						</tr>
+						</tbody>
+					</table>
+					{/*
+						<div id="notices">
+							<div>NOTICE:</div>
+							<div className="notice">A finance charge of 1.5% will be made on unpaid balances after 30 days.</div>
 						</div>
-					</SideSheet>
-					<button id="sell-btn" onClick={() => setState({ isShown: true })}>
-						Create Sale
-					</button>
-				</React.Fragment>
-			)}
-		</Component>
+						*/
+					}
+				</main>
+				<footer>
+					Invoice was created on a computer and is valid without the signature and seal.
+				</footer>
+			</div>
+		);
+	}
+}
+
+const SaleEntryComponent = (props) => {
+		const { products, updateSaleEntry, saleEntry, removeSaleEntry, productPrices} = props;
+		const [selectedProduct, setSelectedProduct] = React.useState(saleEntry.productId || '');
+		const [stateQuantity, setStateQuantity] = React.useState(saleEntry.quantity || 0);
+
+		let productTotalCount = 0;
+
+		const prices = selectedProduct ? productPrices.filter(pp => pp._raw.product_id === selectedProduct) : [];
+
+		prices.forEach(productPrice => {
+			productTotalCount += productPrice.quantity;
+		});
+
+		const product = selectedProduct ? products.find(p => p.id === selectedProduct) : null;
+		console.log("*******************");
+		console.log(saleEntry);
+		console.log(productPrices);
+		console.log("*******************");
+
+		return (
+			<Grid container spacing={1} className="sale-entry">
+				<Grid item style={{ marginRight: '7px'}}>
+					{/*
+					<SelectMenu
+						filterPlaceholder='Select product'
+						title="Select product"
+						options={
+							products.map(product => ({ label: product.name, value: product.id }))
+						}
+						selected={selectedProduct}
+						onSelect={item => {
+							setSelectedProduct(item.value);
+							const p = products.find(p => p.id === item.value);
+							updateSaleEntry({
+								sellingPrice: p.sellingPrice,
+								quantity: stateQuantity,
+								type: saleEntry.type,
+								total: p.sellingPrice * stateQuantity || 0,
+								productId: p.id,
+								key: saleEntry.key,
+								product: p
+							});
+						}}
+						style={{marginBottom: '20px'}}
+					>
+						<Button>{product ? product.name : 'Select product...'}</Button>
+					</SelectMenu>
+					*/}
+					<Select
+						showSearch
+						style={{ width: 170 }}
+						placeholder="Select a product"
+						optionFilterProp="children"
+						onChange={item => {
+							setSelectedProduct(item);
+							const p = products.find(p => p.id === item);
+							updateSaleEntry({
+								sellingPrice: p.sellingPrice,
+								quantity: stateQuantity,
+								type: saleEntry.type,
+								total: p.sellingPrice * stateQuantity || 0,
+								productId: p.id,
+								key: saleEntry.key,
+								product: p
+							});
+						}}
+						filterOption={(input, option) =>
+							option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+						}
+					>
+						{
+							products.map(product => <Option key={product.id} value={product.id}>{product.name}</Option>)
+						}
+					</Select>
+				</Grid>
+				<Grid item>
+					<Chip label={`GH₵ ${product ? product.sellingPrice : 0}`} variant="outlined"/>
+					<Chip label={`GH₵ ${product ? product.sellingPrice * stateQuantity : 0}`} style={{marginLeft: '5px'}}/>
+					<Chip label={`${productTotalCount} left`} style={{marginLeft: '5px'}} variant="outlined"/>
+				</Grid>
+
+				<Grid item style={{ marginRight: '10px', marginLeft: '5px'}}>
+					<InputNumber
+						min={1}
+						max={productTotalCount}
+						defaultValue={0}
+						style={{
+							width: '80px'
+						}}
+						onChange={(value) => {
+							if (value > productTotalCount) {
+								toaster.danger(`Only ${productTotalCount} ${product.name} are left`);
+							} else {
+								setStateQuantity(value || 0);
+								updateSaleEntry({
+									sellingPrice: product ? product.sellingPrice : saleEntry.sellingPrice,
+									quantity: value|| 0,
+									type: saleEntry.type,
+									total: product ? product.sellingPrice * value : saleEntry.total,
+									productId: selectedProduct ? selectedProduct : '',
+									key: saleEntry.key,
+									product
+								});
+							}
+						}}
+					/>
+					{/*
+					<input
+						type="number"
+						name="quantity"
+						min={1}
+						max={productTotalCount.toString()}
+						style={{
+							fontSize: '15px',
+							height: '20px',
+							borderRadius: '5px',
+							width: '60px'
+						}}
+						value={stateQuantity.toString()}
+						disabled={!product}
+						onChange={(e) => {
+							if (e.target.value > productTotalCount) {
+								toaster.danger(`Only ${productTotalCount} ${product.name} are left`);
+							} else {
+								setStateQuantity(parseInt(e.target.value, 10) || 0);
+								updateSaleEntry({
+									sellingPrice: product ? product.sellingPrice : saleEntry.sellingPrice,
+									quantity: parseInt(e.target.value, 10) || 0,
+									type: saleEntry.type,
+									total: product ? product.sellingPrice * parseInt(e.target.value, 10) : saleEntry.total,
+									productId: selectedProduct ? selectedProduct : '',
+									key: saleEntry.key,
+									product
+								});
+							}
+						}}
+					/>
+					*/}
+					{/*
+					<TextInput
+						required
+						width={50}
+						name="quantity"
+						value={stateQuantity}
+						onChange={(e) => {
+							setStateQuantity(parseInt(e.target.value, 10) || 0);
+							updateSaleEntry({
+								sellingPrice: product ? product.sellingPrice : saleEntry.sellingPrice,
+								quantity: parseInt(e.target.value, 10) || 0,
+								type: saleEntry.type,
+								total: product ? product.sellingPrice * parseInt(e.target.value, 10) : saleEntry.total,
+								productId: selectedProduct ? selectedProduct : '',
+								key: saleEntry.key,
+								product
+							});
+						}}
+					/>
+					*/}
+				</Grid>
+				<Grid item>
+					<Button style={{color: 'red'}} onClick={() => removeSaleEntry(saleEntry.key)}>-</Button>
+				</Grid>
+			</Grid>
+		);
+};
+
+
+
+const CreateComponent = (props) => {
+	const [open, setOpen] = React.useState(false);
+	const [salesEntries, setSaleEntries] = React.useState([]);
+	const [count, setCount] = React.useState(0);
+	const { createRecord, products, customers, company, database, productPrices } = props;
+	const [salesTotal, setSalesTotal] = React.useState(0);
+	const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+	const [discount, setDiscount] = React.useState(0);
+	const componentRef = useRef();
+
+
+	const handleClickOpen = () => {
+		setOpen(true);
+	};
+
+	const removeSaleEntry = (key) => {
+		const newSalesEntries = salesEntries.filter(se => se.key !== key);
+		setSaleEntries(newSalesEntries);
+		let newSalesTotal = 0;
+		newSalesEntries.forEach(se => {
+			newSalesTotal += se.total;
+		});
+		setSalesTotal(newSalesTotal);
+	};
+
+	const handleClose = () => {
+		setOpen(false);
+	};
+
+	const upateSaleEntry = (saleEntry) => {
+		console.log(saleEntry);
+		const newSaleEntries = salesEntries;
+		const entry = newSaleEntries.find(se => se.key === saleEntry.key);
+		entry.productId = saleEntry.productId;
+		entry.quantity = saleEntry.quantity;
+		entry.sellingPrice = saleEntry.sellingPrice;
+		entry.type = saleEntry.type;
+		entry.total = saleEntry.total;
+		console.log("$$$$$$$$$$$$$$$$$$$$$");
+		console.log(entry);
+		console.log("$$$$$$$$$$$$$$$$$$$$$");
+		setSaleEntries(newSaleEntries);
+		let newSalesTotal = 0;
+		salesEntries.forEach(se => {
+			newSalesTotal += se.total;
+		});
+		setSalesTotal(newSalesTotal);
+
+	};
+
+	return (
+		<div>
+			<React.Fragment>
+				<SideSheet
+					style={{zIndex: '200', overflow: 'none'}}
+					position={Position.LEFT}
+					isShown={open}
+					onCloseComplete={() => setOpen(false)}
+				>
+					<div id="calculator-view">
+						<h1 style={{ fontSize: '50px', color: 'red'}}>Total</h1>
+						<div style={{fontSize: '60px'}}>
+							<b style={{color: '#09d3ac'}}>GH₵</b><br/> {(salesTotal - discount).toFixed(2)}
+						</div>
+						{discount && discount > 0 ?
+							<div style={{marginTop: '50px'}}>
+								<h1 style={{fontSize: '30px', color: 'red'}}>
+									<b>Discount</b><br/>GH₵ {discount}
+								</h1>
+							</div>
+							: ''
+						}
+						{discount && discount > 0 ?
+							<div style={{marginTop: '20px'}}>
+								<h1 style={{fontSize: '25px'}}>
+									<b>Before discount</b><br/>GH₵ {salesTotal}
+								</h1>
+							</div>
+							: ''
+						}
+					</div>
+				</SideSheet>
+			</React.Fragment>
+			<React.Fragment>
+				<SideSheet
+					isShown={open}
+					onCloseComplete={handleClose}
+					style={{}}
+				>
+					<div id="add-item">
+						<Button
+							type="primary"
+							shape="round"
+							icon="plus"
+							size='large'
+							onClick={() => {
+								setCount(count + 1);
+								console.log(count);
+								console.log(salesEntries);
+								setSaleEntries(salesEntries.concat([{
+									productId: '', quantity: '', sellingPrice: '', type: 'sold', key: count, total: 0
+								}]))
+							}}
+						>Add Item</Button>
+					</div>
+					<div style={{ marginBottom: '40px' }}>
+						<b style={{marginLeft: '50px', marginRight: '20px', fontWeight: 'normal'}}>Select customer:</b>
+						<Select
+							showSearch
+							style={{ width: 170 }}
+							placeholder="Select a customer"
+							optionFilterProp="children"
+							onChange={item => setSelectedCustomer(item)}
+							filterOption={(input, option) =>
+								option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+							}
+						>
+							{
+								customers.map(customer => <Option key={customer.id} value={customer.id}>{customer.name}</Option>)
+							}
+						</Select>
+						<b style={{marginLeft: '50px', marginRight: '20px', fontWeight: 'normal'}}>Discount:</b>
+						<InputNumber
+							min={0}
+							defaultValue={0}
+							style={{
+								width: '70px'
+							}}
+							onChange={value => setDiscount(value)}
+						/>
+					</div>
+					{
+						salesEntries.map(saleEntry =>
+							<SaleEntryComponent
+								removeSaleEntry={removeSaleEntry}
+								key={saleEntry.key}
+								updateSaleEntry={upateSaleEntry}
+								saleEntry={saleEntry}
+								database={database}
+								products={products}
+								productPrices={productPrices}
+							/>
+						)
+					}
+					{
+						salesEntries.filter(se => se.quantity && se.sellingPrice && se.productId)
+							.length > 0 ?
+							<div style={{ marginTop: '20px', marginBottom: '50px'}}>
+								<Component initialState={{ isShown: false }}>
+									{({ state, setState }) => (
+										<Pane>
+											<Dialog
+												isShown={state.isShown}
+												title="Invoice"
+												onCloseComplete={() => setState({ isShown: false })}
+												hasFooter={false}
+											>
+												<Pane height={1800} width="1000px">
+													<div>
+														<ReactToPrint
+															trigger={() =>
+																<button
+																	style={{
+																		fontSize: '15px',
+																		backgroundColor: 'orange',
+																		color: 'black',
+																		padding: '10px',
+																		width: '100px',
+																		margin: '0 auto',
+																		borderRadius: '5px',
+																		bottom: 0
+																	}}
+																>Print</button>}
+															content={() => componentRef.current}
+														/>
+														<ComponentToPrint
+															customers={customers}
+															saleTotal={salesTotal}
+															products={products}
+															company={company}
+															customer={selectedCustomer}
+															saleEntries={salesEntries}
+															discount={discount}
+															ref={componentRef}
+														/>
+													</div>
+												</Pane>
+											</Dialog>
+											<Button
+												size={"large"}
+												style={{
+													width: '200px', fontSize: '40px', height: '100px', float: 'left', marginLeft: '20px', marginBottom: '50px',
+													borderRadius: '10px',
+													backgroundColor: 'grey',
+													color: 'white',
+													padding: '10px'
+												}}
+												onClick={() => {
+													setSaleEntries(salesEntries.filter(se => se.sellingPrice && se.productId && se.quantity))
+													createRecord(salesEntries, salesTotal, selectedCustomer, discount, 'invoice');
+													setState({ isShown: true });
+												}}
+											>
+												Invoice
+											</Button>
+										</Pane>
+									)}
+								</Component>
+								<div>
+
+								</div>
+								<Button
+									onClick={() => {
+										setSaleEntries(salesEntries.filter(se => se.sellingPrice && se.productId && se.quantity))
+									}}
+									style={{
+										width: '200px', fontSize: '40px', float: 'right', marginRight: '20px', marginBottom: '50px',
+										borderRadius: '10px',
+										backgroundColor: 'orange',
+										padding: '10px',
+										height: '100px'
+									}}
+								>
+									Sell
+								</Button>
+
+
+							</div>
+							: ''
+					}
+				</SideSheet>
+				<Button id="sell-btn" type="primary" shape="round" icon="dollar" size='large' onClick={handleClickOpen}>
+					Sell
+				</Button>
+			</React.Fragment>
+		</div>
 	);
 };
+
 
 const EditComponent = (props) => {
 	const {row, modelName, keyFieldName, updateRecord} = props;
@@ -122,7 +594,7 @@ const EditComponent = (props) => {
 							</div>
 						</div>
 					</SideSheet>
-					<Icon icon="edit" onClick={() => setState({ isShown: true })} className="hand-pointer" size={20} color='muted' marginRight={20}/>
+					<Icon type="edit" onClick={() => setState({ isShown: true })} className="hand-pointer" size={20} color='muted' marginRight={20}/>
 				</React.Fragment>
 			)}
 		</Component>
@@ -131,20 +603,77 @@ const EditComponent = (props) => {
 
 
 const Sales = (props) => {
-	const {user, company, sales, users, database, history, parentLocation, search, DrawerIcon, modelName} = props;
+	const {user, company, sales, users, database, history, parentLocation, customers, products, search,
+		DrawerIcon, modelName, productPrices} = props;
 	const salesCollection = database.collections.get(pluralize(modelName));
+	const saleEntriesCollection = database.collections.get(SaleEntry.table);
+	const customersCollection = database.collections.get(Customer.table);
+	const productPricesCollection = database.collections.get(ProductPrice.table);
+	const productsCollection = database.collections.get(Product.table);
 
-	const createRecord = async (saleToCreate) => {
+
+	const createRecord = async (saleEntries, salesTotal, selectedCustomer, discount, saleType) => {
+
+		console.log(saleEntries);
+		console.log(salesTotal);
+		console.log(selectedCustomer);
+		console.log(discount);
+		console.log(saleType);
+
+		const currentCustomer = customers.find(c => c.id === selectedCustomer) || null;
+
 		await database.action(async () => {
+
+			const freshProductPrices = await productPricesCollection.query().fetch();
 			const newSale = await salesCollection.create(sale => {
-				sale.name = saleToCreate.name;
-				sale.note = saleToCreate.note;
-				sale.phone = saleToCreate.phone;
+				sale.discount = discount;
+				sale.type = saleType;
 				sale.createdBy.set(user);
+				if (currentCustomer) {
+					sale.customer.set(currentCustomer);
+				}
 			});
 
-			console.log(`Created ${newSale.name}`);
-			console.log(`Created by ${newSale.createdBy}`);
+			if (newSale && newSale.id) {
+				saleEntries.forEach(async saleEntry => {
+					const product = await productsCollection.find(saleEntry.productId);
+					/*
+					// for sale, not invoice
+					const currentProductPrices = await product.productPrices.fetch();
+					console.log("&&&&&&&&&&&&&&&&&&&&&&");
+					console.log(currentProductPrices);
+					console.log("&&&&&&&&&&&&&&&&&&&&&&");
+					*/
+					// this is needed for sale not invoice
+					// get all productPrices sorted by createdAt
+					// find which product prices will be affected by saleEntry
+					// attach the right cost price to sale entry
+					// update productPrice
+					if (saleType === 'invoice') {
+						await database.action(async () => {
+							await saleEntriesCollection.create(newSaleEntry => {
+								newSaleEntry.quantity = saleEntry.quantity;
+								newSaleEntry.sellingPrice = saleEntry.sellingPrice;
+								newSaleEntry.type = saleEntry.type;
+								newSaleEntry.total = saleEntry.total;
+								newSaleEntry.product.set(product);
+								newSaleEntry.productName = product.name;
+								newSaleEntry.sale.set(newSale);
+							});
+						});
+					} else if (saleType === 'sale') {
+
+					}
+
+				});
+			}
+
+			/*
+			const newSale = await salesCollection.create(sale => {
+				sale.discount = discount;
+				sale.createdBy.set(user);
+			});
+			*/
 		});
 	};
 
@@ -156,10 +685,25 @@ const Sales = (props) => {
 				aSale.note = updatedRecord.note;
 				aSale.phone = updatedRecord.phone;
 			});
-			// search({ key: 'name', value: ''});
-
 		});
 	};
+
+
+
+	const clearAll = () => {
+		database.action(async () => {
+			const saleEntries = await saleEntriesCollection.query().fetch();
+			saleEntries.forEach(async se => {
+				await se.remove();
+			});
+
+			const sales = await salesCollection.query().fetch();
+			sales.forEach(async sale => {
+				await sale.remove();
+			})
+		});
+	}
+
 
 	const deleteRecord = async (id) => {
 		await database.action(async () => {
@@ -200,17 +744,19 @@ const Sales = (props) => {
 					<div id="nav-list">
 						<button className="nav-item active" onClick={() => history.push('sales')}>Sales</button>
 						<button className="nav-item" onClick={() => history.push('customers')}>Customers</button>
+						<button className="nav-item" onClick={() => history.push('dashboard')}>Dashboard</button>
+						<button onClick={() => clearAll()}>Clear</button>
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push('products')}>
-							<Icon icon="arrow-left" marginRight={16}/>
+							<Icon type="arrow-left" />
 							Jump to Inventory
 						</a>
 					</div>
 				</div>
 				<div id="main-body">
 					<div>
-						<CardList
+						<SalesCardList
 							entries={sales}
 							users={users}
 							EditComponent={EditComponent}
@@ -227,7 +773,7 @@ const Sales = (props) => {
 						/>
 					</div>
 					<div id="bottom-area">
-						<CreateComponent createRecord={createRecord} />
+						<CreateComponent productPrices={productPrices} database={database} customers={customers} company={company} createRecord={createRecord} products={products} />
 					</div>
 				</div>
 			</div>
@@ -239,7 +785,10 @@ const EnhancedSales = withDatabase(withObservables(["searchConfig"], ({ database
 	sales: database.collections.get(Sale.table).query(Q.where(searchConfig.key, Q.like(`%${Q.sanitizeLikeString(searchConfig.value)}%`))).observe(),
 	company: database.collections.get(Company.table).find(MyLocal.companyId),
 	user: database.collections.get(User.table).find(MyLocal.userId),
-	users: database.collections.get(User.table).query().observe()
+	users: database.collections.get(User.table).query().observe(),
+	products: database.collections.get(Product.table).query().observe(),
+	customers: database.collections.get(Customer.table).query().observe(),
+	productPrices: database.collections.get(ProductPrice.table).query().observe()
 }))(withRouter(Sales)));
 
 
@@ -269,7 +818,14 @@ class Parent extends React.Component {
 	render() {
 		const {company, DrawerIcon, modelName, user} = this.props;
 		return (
-			<EnhancedSales searchConfig={this.state} modelName={modelName} company={company} user={user} DrawerIcon={DrawerIcon} search={this.search} />
+			<EnhancedSales
+				searchConfig={this.state}
+				modelName={modelName}
+				company={company}
+				user={user}
+				DrawerIcon={DrawerIcon}
+				search={this.search}
+			/>
 		);
 	}
 }

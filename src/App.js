@@ -18,7 +18,7 @@ import {
 	Route,
 	useLocation,
 } from 'react-router-dom';
-import {Icon} from "evergreen-ui";
+import {Icon} from "antd";
 import Companies from "./screens/setup/companies/Companies";
 import Users from "./screens/setup/users/Users";
 import MyLocal from "./services/MyLocal";
@@ -69,17 +69,19 @@ class App extends React.Component {
 	}
 
 	DrawerIcon() {
-		const iconType = !this.state.navShouldOpen === true || this.state.navShouldOpen === null ? 'circle-arrow-left' : 'circle-arrow-right';
+		const iconType = !this.state.navShouldOpen === true || this.state.navShouldOpen === null ? 'left-circle' : 'right-circle';
 		const iconColor = !this.state.navShouldOpen  === true || this.state.navShouldOpen === null ? 'orange' : '#09d3ac' ;
 
 		return(
 			<Icon
 				id="drawer-button"
-				size={40}
+				style={{
+					fontSize: '40px',
+					color: iconColor
+				}}
 				className='hand-pointer'
-				color={iconColor}
 				border='none'
-				icon={iconType}
+				type={iconType}
 				onClick={() => {
 					this.setState({ navShouldOpen: !this.state.navShouldOpen });
 					openNav(this.state.navShouldOpen);

@@ -3,6 +3,7 @@ import {field, date, text, readonly, children, relation} from '@nozbe/watermelon
 
 export default class Brand extends Model {
   static table = 'brands';
+  static deletable = true;
 
   static associations = {
     products: { type: 'has_many', foreignKey: 'brand_id' },
