@@ -11,9 +11,8 @@ import Products from "./screens/inventoryScreens/products/Products";
 import Categories from "./screens/inventoryScreens/categories/Categories";
 import Brands from "./screens/inventoryScreens/brands/Brands";
 import {toaster} from "evergreen-ui";
-
 import {
-	BrowserRouter as Router,
+	HashRouter as Router,
 	Switch,
 	Route,
 	useLocation,

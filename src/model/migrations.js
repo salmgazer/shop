@@ -4,6 +4,17 @@ import productPricesSchema from "./productPrices/productPriceSchema";
 export default schemaMigrations({
 	migrations: [
 		{
+			toVersion: 8,
+			steps: [
+				addColumns({
+					table: 'sale_entries',
+					columns: [
+						{name: 'cost_price_allocations', type: 'string'},
+					]
+				})
+			]
+		},
+		{
 			toVersion: 7,
 			steps: [
 				addColumns({

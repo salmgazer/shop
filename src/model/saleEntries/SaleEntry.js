@@ -1,6 +1,8 @@
 import { Model } from '@nozbe/watermelondb';
 import {field, date, readonly, json, relation, lazy} from '@nozbe/watermelondb/decorators';
 
+const sanitizeCostPriceAllocations = json => json;
+
 export default class SaleEntry extends Model {
 	static table = 'sale_entries';
 	static deletable = true;
@@ -18,6 +20,7 @@ export default class SaleEntry extends Model {
 	@field('product_name') productName;
 	@relation('products', 'product_id') product;
 	@relation('sales', 'sale_id') sale;
+	@json('cost_price_allocations', sanitizeCostPriceAllocations) costPriceAllocations;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;
 

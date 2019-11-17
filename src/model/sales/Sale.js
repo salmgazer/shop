@@ -26,6 +26,6 @@ export default class Sale extends Model {
 		.get('sale_entries').query(Q.where('sale_id', this.id));
 
 	async remove() {
-		await this.markAsDeleted(); // syncable
+		await this.destroyPermanently(); // syncable
 	}
 }

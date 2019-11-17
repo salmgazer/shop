@@ -11,7 +11,7 @@ import salesEntrySchema from "./saleEntries/saleEntrySchema";
 import productPricesSchema from "./productPrices/productPriceSchema";
 
 export default appSchema({
-  version: 7,
+  version: 8,
   tables: [
     tableSchema(companySchema),
     tableSchema(userSchema),

@@ -23,6 +23,7 @@ import User from "../../../model/users/User";
 
 const fieldNames = [
 	{name: 'name', label: 'Name', type: 'string' },
+	{name: 'username', label: 'Username', type: 'string'},
 	{name: 'email', label: 'Email', type: 'string' },
 	{name: 'phone', label: 'Phone', type: 'string' },
 	{name: 'address', label: 'Address', type: 'string' },

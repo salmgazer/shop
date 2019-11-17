@@ -11,19 +11,16 @@ import 'date-fns';
 import {withDatabase} from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from '@material-ui/core/Chip';
-import { List, Typography, Table, Divider, Tag, Icon  } from 'antd';
+import { Table, Icon } from 'antd';
 
 const CardListItem = (props) => {
-	const {entry, company, saleEntries, customer, removeProductPrice, saveProductPrice, user, productPrices, category, brand, brands, categories, EditComponent, deleteRecord, updateRecord, keyFieldName, modelName, displayNameField, fieldNames, database} = props;
+	const {entry, saleEntries, customer, removeProductPrice, saveProductPrice, user, productPrices, category, brand, brands, categories, EditComponent, deleteRecord, updateRecord, keyFieldName, modelName, displayNameField, fieldNames, database} = props;
 
 	let totalQuantity = 0;
 	[].forEach(productPrice => {
 		totalQuantity += productPrice.quantity;
 	});
 
-	console.log("!!!!!!!!!!!!!!!!!!!!");
-	console.log(saleEntries);
-	console.log("!!!!!!!!!!!!!!!!!!!!");
 
 	const columns = [
 		{
@@ -48,22 +45,37 @@ const CardListItem = (props) => {
 		}
 	];
 
+	const costPricesColumns = [
+		{
+			title: 'Cost Price',
+			dataIndex: 'price',
+			key: 'price',
+		},
+		{
+			title: 'Quantity',
+			dataIndex: 'quantity',
+			key: 'quantity'
+		}
+	];
 
-	const dataSource = saleEntries.map(async saleEntry => {
-		const product = await saleEntry.product.fetch();
-		return {
-			key: saleEntry.id,
-			productName: product.name,
-			quantity: saleEntry.quantity,
-			sellingPrice: saleEntry.sellingPrice,
-			total: saleEntry.total
-		};
-	});
 
 	let totalSales = 0;
 	saleEntries.forEach(se => {
 		totalSales += se.total;
 	});
+
+	const expandedRowRender = (record) => {
+		const item = saleEntries.find(se => se.id === record.key);
+		console.log(item);
+		let counter = 0;
+		const data = item.costPriceAllocations.map(a => {
+			const newA = a;
+			newA.key = counter;
+			counter ++;
+			return newA;
+		});
+		return <Table columns={costPricesColumns} dataSource={data} pagination={false} />;
+	};
 
 
 	return (
@@ -79,6 +91,7 @@ const CardListItem = (props) => {
 								<div style={{ width: '80%', margin: '0 auto'}}>
 									<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Details of {capitalize(entry.type)}</h3>
 									<Table
+										expandedRowRender={expandedRowRender}
 										columns={columns}
 										dataSource={saleEntries.map(saleEntry => {
 											// const product = await saleEntry.product.fetch();
@@ -89,39 +102,9 @@ const CardListItem = (props) => {
 												sellingPrice: saleEntry._raw.selling_price,
 												total: saleEntry._raw.total
 											};
-											console.log("%%%%%%%%%%%%%%%");
-											console.log(entry);
-											console.log("%%%%%%%%%%%%%%%");
 											return value;
 										})}
 									/>
-
-									{
-										/*
-										fieldNames.map(field => {
-												let value = entry[field.name];
-												if (typeof value === 'object') {
-													if (value instanceof Date) {
-														value = value.toLocaleString().split(',')[0];
-													} else {
-														value = '';
-													}
-												}
-												else if (field.name === 'createdBy') {
-													value = user.name;
-												}
-												if (field.name === 'brand') {
-													value = brand ? brand.name : '';
-												}else if (field.name === 'category') {
-													value = category ? category.name : '';
-												}
-												return <div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}} key={field.name}>
-													<b style={{fontWeight: '300'}}>{capitalize(field.label)}</b>
-													: {<Chip label={value} variant="outlined" /> || ''}</div>
-											}
-										)
-										*/
-									}
 									<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
 										<b style={{fontWeight: '300'}}>Total: GH₵ {totalSales}</b>
 									</div>
@@ -137,7 +120,9 @@ const CardListItem = (props) => {
 										: ''
 									}
 									<div style={{fontSize: '20px', fontWeight: 'lighter', marginBottom: '20px'}}>
-										<b style={{fontWeight: '300'}}>Customer: <Chip label={customer.name} variant="outlined" /></b>
+										{ customer && customer.name ?
+											<b style={{fontWeight: '300'}}>Customer: <Chip label={customer.name} variant="outlined"/></b> : ''
+										}
 									</div>
 									<div style={{ margin: '0 auto', marginTop: '60px', marginBottom: '70px'}}>
 										<Button>Edit
@@ -164,17 +149,19 @@ const CardListItem = (props) => {
 				</Component>
 			</Grid>
 			<Grid item xs={4} style={{ marginTop: '7px'}}>
-				<div id="name-column">{entry.name}</div>
+				<div id="name-column">{entry.type}</div>
 				<div style={{ color: '#7B8B9A', fontSize: '12px' }}>{entry.notes || entry.description || entry.phone}</div>
 			</Grid>
 			<Grid item xs={2} style={{ marginTop: '16px'}}>
-				<div style={{color: '#7B8B9A', fontSize: '14px'}}>{entry.createdAt.toLocaleString().toString().split(',')[0]}</div>
+				{customer && customer.name ?
+				<div style={{color: '#7B8B9A', fontSize: '14px'}}>{customer.name}</div> : ''
+				}
 			</Grid>
 			<Grid item xs={3} style={{ marginTop: '16px'}}>
 				<div style={{color: '#7B8B9A', fontSize: '14px'}}>{user.name}</div>
 			</Grid>
-			<Grid item xs={1} container style={{ marginTop: '16px'}}>
-				<Grid item>
+			<Grid item xs={1} container style={{ marginTop: '16px' }}>
+				<Grid item style={{ marginRight: '15px' }}>
 					<EditComponent
 						row={entry}
 						modelName={modelName}
@@ -218,7 +205,7 @@ const CardListItem = (props) => {
 
 const EnhancedCardListItem = withDatabase(withObservables ([], ({database, modelName, entry }) => ({
 	entry: database.collections.get(`${pluralize(modelName)}`).findAndObserve(entry.id),
-	customer: entry.customer.observe(),
+	customer: entry.customer,
 	saleEntries: entry.saleEntries.observe(),
 	createdBy: entry.createdBy
 }))(CardListItem));

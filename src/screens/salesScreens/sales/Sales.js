@@ -22,21 +22,19 @@ import User from "../../../model/users/User";
 import Company from "../../../model/companies/Company";
 import Sale from "../../../model/sales/Sale";
 import Grid from "@material-ui/core/Grid/Grid";
-import { makeStyles } from '@material-ui/core/styles';
 import Product from "../../../model/products/Product";
 import Chip from "@material-ui/core/Chip/Chip";
 import Customer from "../../../model/customers/Customer";
 import ReactToPrint from 'react-to-print';
 import SaleEntry from "../../../model/saleEntries/SaleEntry";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
-import salesEntrySchema from "../../../model/saleEntries/saleEntrySchema";
-import productPricesSchema from "../../../model/productPrices/productPriceSchema";
 import { InputNumber, Select, Button, Icon } from 'antd';
 const { Option } = Select;
 
 const fieldNames = [
 	{name: 'discount', label: 'Discount', type: 'number' },
 	{name: 'customer', label: 'Customer'},
+	{name: 'total', label: 'Total' },
 	{name: 'createdBy', label: 'Created By', type: 'string' },
 	{name: 'phone', label: 'Phone', type: 'string' },
 	{name: 'createdAt', label: 'Created', type: 'string' },
@@ -526,23 +524,74 @@ const CreateComponent = (props) => {
 										</Pane>
 									)}
 								</Component>
-								<div>
 
-								</div>
-								<Button
-									onClick={() => {
-										setSaleEntries(salesEntries.filter(se => se.sellingPrice && se.productId && se.quantity))
-									}}
-									style={{
-										width: '200px', fontSize: '40px', float: 'right', marginRight: '20px', marginBottom: '50px',
-										borderRadius: '10px',
-										backgroundColor: 'orange',
-										padding: '10px',
-										height: '100px'
-									}}
-								>
-									Sell
-								</Button>
+
+
+
+
+								<Component initialState={{ isShown: false }}>
+									{({ state, setState }) => (
+										<Pane>
+											<Dialog
+												isShown={state.isShown}
+												title="Sale"
+												onCloseComplete={() => setState({ isShown: false })}
+												hasFooter={false}
+											>
+												<Pane height={1800} width="1000px">
+													<div>
+														<ReactToPrint
+															trigger={() =>
+																<button
+																	style={{
+																		fontSize: '15px',
+																		backgroundColor: 'orange',
+																		color: 'black',
+																		padding: '10px',
+																		width: '100px',
+																		margin: '0 auto',
+																		borderRadius: '5px',
+																		bottom: 0
+																	}}
+																>Print</button>}
+															content={() => componentRef.current}
+														/>
+														<ComponentToPrint
+															customers={customers}
+															saleTotal={salesTotal}
+															products={products}
+															company={company}
+															customer={selectedCustomer}
+															saleEntries={salesEntries}
+															discount={discount}
+															ref={componentRef}
+														/>
+													</div>
+												</Pane>
+											</Dialog>
+											<Button
+												size={"large"}
+												style={{
+													width: '200px', fontSize: '40px', height: '100px', float: 'right', marginRight: '20px', marginBottom: '50px',
+													borderRadius: '10px',
+													backgroundColor: 'orange',
+													color: 'white',
+													padding: '10px'
+												}}
+												onClick={() => {
+													setSaleEntries(salesEntries.filter(se => se.sellingPrice && se.productId && se.quantity))
+													createRecord(salesEntries, salesTotal, selectedCustomer, discount, 'sale');
+													setState({ isShown: true });
+												}}
+											>
+												Sell
+											</Button>
+										</Pane>
+									)}
+								</Component>
+
+
+
 
 
 							</div>
@@ -594,7 +643,7 @@ const EditComponent = (props) => {
 							</div>
 						</div>
 					</SideSheet>
-					<Icon type="edit" onClick={() => setState({ isShown: true })} className="hand-pointer" size={20} color='muted' marginRight={20}/>
+					<Icon type="edit" onClick={() => setState({ isShown: true })} className="hand-pointer" size={20} color='muted'/>
 				</React.Fragment>
 			)}
 		</Component>
@@ -624,7 +673,6 @@ const Sales = (props) => {
 
 		await database.action(async () => {
 
-			const freshProductPrices = await productPricesCollection.query().fetch();
 			const newSale = await salesCollection.create(sale => {
 				sale.discount = discount;
 				sale.type = saleType;
@@ -637,9 +685,10 @@ const Sales = (props) => {
 			if (newSale && newSale.id) {
 				saleEntries.forEach(async saleEntry => {
 					const product = await productsCollection.find(saleEntry.productId);
+					const currentProductPrices = await product.productPrices.fetch();
 					/*
 					// for sale, not invoice
-					const currentProductPrices = await product.productPrices.fetch();
+					currentProductPrices = await product.productPrices.fetch();
 					console.log("&&&&&&&&&&&&&&&&&&&&&&");
 					console.log(currentProductPrices);
 					console.log("&&&&&&&&&&&&&&&&&&&&&&");
@@ -649,22 +698,48 @@ const Sales = (props) => {
 					// find which product prices will be affected by saleEntry
 					// attach the right cost price to sale entry
 					// update productPrice
-					if (saleType === 'invoice') {
-						await database.action(async () => {
-							await saleEntriesCollection.create(newSaleEntry => {
-								newSaleEntry.quantity = saleEntry.quantity;
-								newSaleEntry.sellingPrice = saleEntry.sellingPrice;
-								newSaleEntry.type = saleEntry.type;
-								newSaleEntry.total = saleEntry.total;
-								newSaleEntry.product.set(product);
-								newSaleEntry.productName = product.name;
-								newSaleEntry.sale.set(newSale);
-							});
-						});
-					} else if (saleType === 'sale') {
+					let totalProductPriceQuantity = 0; //fetched so far, belongs to saleEntry
+					const costPriceAllocations = [];
+					console.log("&&&&&&&&&&&&&&&&&&&&");
+					console.log(currentProductPrices.sort((a, b) => b.createdAt - a.createdAt));
+					console.log("&&&&&&&&&&&&&&&&&&&&");
+					currentProductPrices.sort((a, b) => b.createdAt - a.createdAt).forEach(async pp => {
+						if (totalProductPriceQuantity < saleEntry.quantity) {
+							let newProductPriceQuantity = pp.quantity;
+							if (pp.quantity < saleEntry.quantity) {
+								totalProductPriceQuantity += pp.quantity;
+								newProductPriceQuantity = 0;
+							} else {
+								totalProductPriceQuantity += saleEntry.quantity;
+								newProductPriceQuantity = pp.quantity - saleEntry.quantity;
+							}
+							if (newProductPriceQuantity !== pp.quantity) {
+								if (saleType === 'sale') { // dont make changes to productPrice when dealing with invoice
+									costPriceAllocations.push({ price: pp.price, quantity: pp.quantity - newProductPriceQuantity});
 
-					}
+									await database.action(async () => {
+										await pp.update(aPp => {
+											aPp.quantity = newProductPriceQuantity;
+										});
+									});
+								}
 
+								await database.action(async () => {
+									await saleEntriesCollection.create(newSaleEntry => {
+										newSaleEntry.quantity = saleEntry.quantity;
+										newSaleEntry.sellingPrice = saleEntry.sellingPrice;
+										newSaleEntry.type = saleEntry.type;
+										newSaleEntry.total = saleEntry.total;
+										newSaleEntry.product.set(product);
+										newSaleEntry.productName = product.name;
+										newSaleEntry.sale.set(newSale);
+										newSaleEntry.costPriceAllocations = costPriceAllocations;
+									});
+								});
+							}
+						}
+
+					});
 				});
 			}
 
@@ -694,15 +769,17 @@ const Sales = (props) => {
 		database.action(async () => {
 			const saleEntries = await saleEntriesCollection.query().fetch();
 			saleEntries.forEach(async se => {
+				console.log(`About to remove  sale entry${se.id}`);
 				await se.remove();
 			});
 
 			const sales = await salesCollection.query().fetch();
 			sales.forEach(async sale => {
+				console.log(`About to remove sale ${sale.id}`);
 				await sale.remove();
 			})
 		});
-	}
+	};
 
 
 	const deleteRecord = async (id) => {

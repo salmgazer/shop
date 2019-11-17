@@ -1,5 +1,4 @@
 #page-bg {
-    background: url("../../resources/10.jpg") no-repeat;
 }
 
 #control-area {
@@ -53,7 +52,7 @@
     padding: 50px;
     background-color: #007bff;
     border-radius: 20px;
-    width: 350px;
+    width: 400px;
     margin: 70px auto;
     color: white;
     font-size: 30px;
@@ -61,13 +60,19 @@
     border: 4px solid white;
     cursor: pointer;
     transition: 0.4s;
-}
-
-#play-store:hover {
-    color: #007bff;
-    background-color: white;
-    box-shadow: 0 16px 32px 0 rgba(0,0,0,0.2);
-    border: 4px solid #007bff;
+    a {
+        color: white;
+    }
+    &:hover {
+        background-color: white;
+        box-shadow: 0 16px 32px 0 rgba(0,0,0,0.2);
+        border: 4px solid #007bff;
+        padding: 55px;
+        width: 420px;
+        a {
+            color: #007bff;
+        }
+    }
 }
 
 #user-icon-area-control {
