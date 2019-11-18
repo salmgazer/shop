@@ -3,8 +3,10 @@ import {withDatabase} from '@nozbe/watermelondb/DatabaseProvider';
 import withObservables from '@nozbe/with-observables';
 import './Control.scss';
 import {withRouter} from 'react-router-dom';
-import {toaster, Avatar, Menu, Position, Popover, Icon} from "evergreen-ui";
+import {toaster} from "evergreen-ui";
 import MyLocal from "../../services/MyLocal";
+import { PageHeader } from 'antd';
+import TopNav from "../../components/TopNav";
 
 
 const Control = (props) => {
@@ -18,30 +20,19 @@ const Control = (props) => {
 
 	return (
 		<div>
-			<div id='user-icon-area'>
-				<Popover
-					position={Position.BOTTOM_LEFT}
-					content={
-						<Menu>
-								<Menu.Item
-									onSelect={() => MyLocal.logout()}
-									style={{color: 'red', fontWeight: 'bold'}}
-								>
-									Logout <Icon icon="power" style={{ marginBottom: '-5px'}} />
-								</Menu.Item>
-						</Menu>
-					}
-				>
-					<Avatar
-						name={user.name}
-						size={40}
-						id='user-icon'
-					/>
-				</Popover>
-
-			</div>
+			<TopNav user={user}/>
 			<div id="control-area">
-				<h1 id="heading" className="center-text"> {company.name} Control Panel</h1>
+				<PageHeader
+					id="heading"
+					style={{
+						border: '1px solid rgb(235, 237, 240)',
+						marginBottom: '200px',
+						backgroundColor: 'white',
+						boxShadow: '0 2px 3px 0 rgba(0,0,0,0.2)'
+					}}
+					title={<h2 style={{marginTop: '7px'}}>{company.name} Control Panel</h2>}
+				/>
+				{ /*<h1 id="heading" className="center-text"> {company.name} Control Panel</h1> */ }
 				<div className="row center-text">
 					<a onClick={() => history.push('sales')}>Sales</a>
 					<a onClick={() => history.push('products')}>Inventory</a>

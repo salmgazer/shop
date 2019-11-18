@@ -12,8 +12,7 @@ import {
 	Button,
 	TextInput,
 	Textarea,
-	Icon,
-	toaster, Popover, Position, Menu, Avatar
+	Icon
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
 import CardList from "../../../components/CardList";
@@ -21,6 +20,7 @@ import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";
 import Company from "../../../model/companies/Company";
 import Customer from "../../../model/customers/Customer";
+import TopNav from "../../../components/TopNav";
 
 const fieldNames = [
 	{name: 'name', label: 'Name', type: 'string' },
@@ -178,27 +178,7 @@ const Customers = (props) => {
 
 	return (
 		<div>
-			<div id='user-icon-area'>
-				<Popover
-					position={Position.BOTTOM_LEFT}
-					content={
-						<Menu>
-							<Menu.Item
-								onSelect={() => MyLocal.logout()}
-								style={{color: 'red', fontWeight: 'bold'}}
-							>
-								Logout <Icon icon="power" style={{ marginBottom: '-5px'}} />
-							</Menu.Item>
-						</Menu>
-					}
-				>
-					<Avatar
-						name={user.name}
-						size={40}
-						id='user-icon'
-					/>
-				</Popover>
-			</div>
+			<TopNav user={user}/>
 			<div id="main-area">
 				{
 					<DrawerIcon />

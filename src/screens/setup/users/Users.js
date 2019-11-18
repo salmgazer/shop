@@ -272,7 +272,7 @@ const Users = (props) => {
 
 	return (
 		<div>
-			<div id="main-area-company">
+			<div id="main-area">
 				{
 					<DrawerIcon />
 				}

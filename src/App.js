@@ -17,10 +17,10 @@ import {
 	Route,
 	useLocation,
 } from 'react-router-dom';
-import {Icon} from "antd";
 import Companies from "./screens/setup/companies/Companies";
 import Users from "./screens/setup/users/Users";
 import MyLocal from "./services/MyLocal";
+import { Result, Button, Icon } from 'antd';
 
 function openNav(open) {
 	const sideNav = document.getElementById('side-nav');
@@ -43,12 +43,12 @@ function NoMatch() {
 	let location = useLocation();
 
 	return (
-		<div>
-			<h3 style={{ textAlign: 'center' }}>
-				No match for <code>{location.pathname}</code>
-				<h4>Go back to <a href='/'>Home page</a></h4>
-			</h3>
-		</div>
+		<Result
+			status="404"
+			title="404"
+			subTitle={`Sorry, the page ${location.pathname} does not exist.`}
+			extra={<Button type="primary" onClick={() => window.location.href = '/' }>Back Home</Button>}
+		/>
 	);
 }
 
@@ -61,7 +61,8 @@ class App extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			navShouldOpen: null
+			navShouldOpen: null,
+			collapsed: false
 		};
 
 		this.DrawerIcon = this.DrawerIcon.bind(this);
@@ -70,6 +71,21 @@ class App extends React.Component {
 	DrawerIcon() {
 		const iconType = !this.state.navShouldOpen === true || this.state.navShouldOpen === null ? 'left-circle' : 'right-circle';
 		const iconColor = !this.state.navShouldOpen  === true || this.state.navShouldOpen === null ? 'orange' : '#09d3ac' ;
+
+		const openedStyle = {
+			borderRadius: '20px',
+			marginBottom: '100px',
+			marginLeft: '-20px',
+			backgroundColor: 'white'
+		};
+
+		const closedStyle = {
+			borderRadius: '20px',
+			marginBottom: '100px',
+			marginLeft: '-20px',
+			backgroundColor: 'white'
+		};
+
 
 		return(
 			<Icon

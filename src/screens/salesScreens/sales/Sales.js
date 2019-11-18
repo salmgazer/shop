@@ -12,8 +12,10 @@ import {
 	SideSheet,
 	TextInput,
 	Textarea,
-	Popover, Position, Menu, Avatar, SelectMenu,
-	Dialog, Pane, toaster
+	Position,
+	Dialog,
+	Pane,
+	toaster
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
 import SalesCardList from "../../../components/SalesCardList";
@@ -29,6 +31,7 @@ import ReactToPrint from 'react-to-print';
 import SaleEntry from "../../../model/saleEntries/SaleEntry";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
 import { InputNumber, Select, Button, Icon } from 'antd';
+import TopNav from "../../../components/TopNav";
 const { Option } = Select;
 
 const fieldNames = [
@@ -52,11 +55,6 @@ class ComponentToPrint extends React.Component {
 		return (
 			<div id="receipt-div">
 				<header className="clearfix">
-					{/*
-					<div id="logo">
-						<img src="./logo.png" />
-					</div>
-					*/}
 					<h1>{company.name}</h1>
 					<div id="company" className="clearfix">
 						<div>{company.name}</div>
@@ -162,10 +160,6 @@ const SaleEntryComponent = (props) => {
 		});
 
 		const product = selectedProduct ? products.find(p => p.id === selectedProduct) : null;
-		console.log("*******************");
-		console.log(saleEntry);
-		console.log(productPrices);
-		console.log("*******************");
 
 		return (
 			<Grid container spacing={1} className="sale-entry">
@@ -370,7 +364,6 @@ const CreateComponent = (props) => {
 		<div>
 			<React.Fragment>
 				<SideSheet
-					style={{zIndex: '200', overflow: 'none'}}
 					position={Position.LEFT}
 					isShown={open}
 					onCloseComplete={() => setOpen(false)}
@@ -656,18 +649,10 @@ const Sales = (props) => {
 		DrawerIcon, modelName, productPrices} = props;
 	const salesCollection = database.collections.get(pluralize(modelName));
 	const saleEntriesCollection = database.collections.get(SaleEntry.table);
-	const customersCollection = database.collections.get(Customer.table);
-	const productPricesCollection = database.collections.get(ProductPrice.table);
 	const productsCollection = database.collections.get(Product.table);
 
 
 	const createRecord = async (saleEntries, salesTotal, selectedCustomer, discount, saleType) => {
-
-		console.log(saleEntries);
-		console.log(salesTotal);
-		console.log(selectedCustomer);
-		console.log(discount);
-		console.log(saleType);
 
 		const currentCustomer = customers.find(c => c.id === selectedCustomer) || null;
 
@@ -686,23 +671,9 @@ const Sales = (props) => {
 				saleEntries.forEach(async saleEntry => {
 					const product = await productsCollection.find(saleEntry.productId);
 					const currentProductPrices = await product.productPrices.fetch();
-					/*
-					// for sale, not invoice
-					currentProductPrices = await product.productPrices.fetch();
-					console.log("&&&&&&&&&&&&&&&&&&&&&&");
-					console.log(currentProductPrices);
-					console.log("&&&&&&&&&&&&&&&&&&&&&&");
-					*/
-					// this is needed for sale not invoice
-					// get all productPrices sorted by createdAt
-					// find which product prices will be affected by saleEntry
-					// attach the right cost price to sale entry
-					// update productPrice
+
 					let totalProductPriceQuantity = 0; //fetched so far, belongs to saleEntry
 					const costPriceAllocations = [];
-					console.log("&&&&&&&&&&&&&&&&&&&&");
-					console.log(currentProductPrices.sort((a, b) => b.createdAt - a.createdAt));
-					console.log("&&&&&&&&&&&&&&&&&&&&");
 					currentProductPrices.sort((a, b) => b.createdAt - a.createdAt).forEach(async pp => {
 						if (totalProductPriceQuantity < saleEntry.quantity) {
 							let newProductPriceQuantity = pp.quantity;
@@ -742,13 +713,6 @@ const Sales = (props) => {
 					});
 				});
 			}
-
-			/*
-			const newSale = await salesCollection.create(sale => {
-				sale.discount = discount;
-				sale.createdBy.set(user);
-			});
-			*/
 		});
 	};
 
@@ -791,27 +755,7 @@ const Sales = (props) => {
 
 	return (
 		<div>
-			<div id='user-icon-area'>
-				<Popover
-					position={Position.BOTTOM_LEFT}
-					content={
-						<Menu>
-							<Menu.Item
-								onSelect={() => MyLocal.logout()}
-								style={{color: 'red', fontWeight: 'bold'}}
-							>
-								Logout <Icon icon="power" style={{ marginBottom: '-5px'}} />
-							</Menu.Item>
-						</Menu>
-					}
-				>
-					<Avatar
-						name={user.name}
-						size={40}
-						id='user-icon'
-					/>
-				</Popover>
-			</div>
+			<TopNav user={user}/>
 			<div id="main-area">
 				{
 					<DrawerIcon />

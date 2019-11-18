@@ -18,7 +18,8 @@ import {
 	Dialog,
 	FilePicker,
 	SearchInput,
-	toaster, Popover, Position, Menu, Avatar, SelectMenu
+	toaster,
+	SelectMenu
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
 import ProductCardList from "../../../components/ProductCardList";
@@ -30,6 +31,7 @@ import Brand from "../../../model/brand/Brand";
 import Category from "../../../model/categories/Category";
 import Papa from "papaparse";
 import capitalize from 'capitalize';
+import TopNav from "../../../components/TopNav";
 
 const fieldNames = [
 	{ name: 'name', label: 'Name', type: 'string' },
@@ -561,27 +563,7 @@ const Products = (props) => {
 
 	return (
 		<div>
-			<div id='user-icon-area'>
-				<Popover
-					position={Position.BOTTOM_LEFT}
-					content={
-						<Menu>
-							<Menu.Item
-								onSelect={() => MyLocal.logout()}
-								style={{color: 'red', fontWeight: 'bold'}}
-							>
-								Logout <Icon icon="power" style={{ marginBottom: '-5px'}} />
-							</Menu.Item>
-						</Menu>
-					}
-				>
-					<Avatar
-						name={user.name}
-						size={40}
-						id='user-icon'
-					/>
-				</Popover>
-			</div>
+			<TopNav user={user}/>
 			<div id="main-area">
 				{
 					<DrawerIcon />
