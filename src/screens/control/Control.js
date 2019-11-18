@@ -26,7 +26,7 @@ const Control = (props) => {
 					id="heading"
 					style={{
 						border: '1px solid rgb(235, 237, 240)',
-						marginBottom: '200px',
+						marginBottom: '120px',
 						backgroundColor: 'white',
 						boxShadow: '0 2px 3px 0 rgba(0,0,0,0.2)'
 					}}
