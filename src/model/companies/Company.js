@@ -6,6 +6,7 @@ import { Q } from '@nozbe/watermelondb';
 
 export default class Company extends Model {
 	static table = 'companies';
+	static deletable = true;
 
 	static associations = {
 		users_companies: { type: 'has_many', foreignKey: 'company_id' },
