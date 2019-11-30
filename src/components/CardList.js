@@ -113,9 +113,7 @@ const CardListItem = props => {
         </Component>
       </Grid>
       <Grid item xs={4} style={{ marginTop: "7px" }}>
-        <div id="name-column">
-          {entry.name || entry.amount ? <b>GHS {entry.amount}</b> : ""}
-        </div>
+        <div id="name-column">{entry.name}</div>
         <div style={{ color: "#7B8B9A", fontSize: "12px" }}>
           {entry.notes || entry.description || entry.phone}
         </div>
