@@ -12,6 +12,8 @@ import Customer from "./customers/Customer";
 import Sale from "./sales/Sale";
 import SaleEntry from "./saleEntries/SaleEntry";
 import ProductPrice from "./productPrices/ProductPrice";
+import Expense from "./expenses/Expense";
+import ExpenseCategory from "./expenseCategories/ExpenseCategory";
 
 
 const adapter = new LokiJSAdapter({
@@ -31,7 +33,9 @@ export default new Database({
     Customer,
     Sale,
     SaleEntry,
-    ProductPrice
+    ProductPrice,
+    Expense,
+    ExpenseCategory
   ],
   actionsEnabled: true,
 });

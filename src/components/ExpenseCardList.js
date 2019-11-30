@@ -34,7 +34,8 @@ const CardListItem = props => {
     displayNameField,
     fieldNames,
     expenseCategories,
-    database
+    database,
+    expenseCategory
   } = props;
 
   return (
@@ -64,6 +65,8 @@ const CardListItem = props => {
                         value = value.toLocaleString().split(",")[0];
                       } else if (field.name === "createdBy") {
                         value = createdBy ? createdBy.name : "";
+                      } else if (field.name === "expenseCategory") {
+                        value = expenseCategory.name;
                       }
                     }
                     return (
@@ -192,7 +195,10 @@ const EnhancedCardListItem = withDatabase(
     entry: database.collections
       .get(`${pluralize(modelName)}`)
       .findAndObserve(entry.id),
-    createdBy: entry.createdBy
+    createdBy: entry.createdBy,
+    expenseCategory: database.collections
+      .get(ExpenseCategory.table)
+      .findAndObserve(entry.categoryId)
   }))(CardListItem)
 );
 
@@ -263,7 +269,7 @@ class CardList extends React.Component {
           </Grid>
           <Grid item xs={2}>
             <p style={{ color: "grey", marginBottom: "-5px" }}>
-              {entries.length > 0 && entries[0].date ? "Date" : "Created on"}
+              {entries[0].date ? "Date" : "Created on"}
             </p>
           </Grid>
           <Grid item xs={3} style={{ color: "grey" }}>

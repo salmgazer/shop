@@ -1,9 +1,10 @@
 import {Menu, Avatar, Popover, Position} from "evergreen-ui";
 import MyLocal from "../services/MyLocal";
 import React from "react";
-import {Icon} from 'antd';
+import {Icon, Divider} from 'antd';
+import { withRouter } from 'react-router-dom';
 
-const TopNav = ({user}) => {
+const TopNav = ({user, history}) => {
 	return (
 		<div id='user-icon-area'>
 			<Popover
@@ -11,10 +12,17 @@ const TopNav = ({user}) => {
 				content={
 					<Menu>
 						<Menu.Item
-							onSelect={() => MyLocal.logout()}
-							style={{color: 'red', fontWeight: 'bold'}}
+							onSelect={() => history.push('settings')}
+							style={{color: 'black'}}
 						>
-							Logout <Icon type="poweroff" style={{ marginTop: '5px' }} />
+							Settings <Icon type="setting" />
+						</Menu.Item>
+						<Divider/>
+						<Menu.Item
+							onSelect={() => MyLocal.logout()}
+							style={{color: 'red'}}
+						>
+							Logout <Icon type="poweroff"/>
 						</Menu.Item>
 					</Menu>
 				}
@@ -31,4 +39,4 @@ const TopNav = ({user}) => {
 };
 
 
-export default TopNav;
+export default withRouter(TopNav);

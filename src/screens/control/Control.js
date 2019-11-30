@@ -36,7 +36,7 @@ const Control = (props) => {
 				<div className="row center-text">
 					<a onClick={() => history.push('sales')}>Sales</a>
 					<a onClick={() => history.push('products')}>Inventory</a>
-					<a onClick={() => history.push('settings')}>Settings</a>
+					<a onClick={() => history.push('expenses')}>Expenditure</a>
 				</div>
 			</div>
 			<div className="row" id="play-store">

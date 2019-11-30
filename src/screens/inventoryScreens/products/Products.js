@@ -199,7 +199,7 @@ const CreateComponent = (props) => {
 							/>
 						</div>
 					</SideSheet>
-					<button id="sell-btn" onClick={() => setState({ isShown: true })}>
+					<button className="sell-btn" onClick={() => setState({ isShown: true })}>
 						Add Product
 					</button>
 				</React.Fragment>
@@ -437,10 +437,13 @@ const EditComponent = (props) => {
 };
 
 const Products = (props) => {
-	const {user, company, users, products, brands, categories, database, history, parentLocation, search, DrawerIcon, modelName} = props;
+	const {user, company, users, products, brands, categories, database, history, search, DrawerIcon, modelName} = props;
 	const productsCollection = database.collections.get(pluralize(modelName));
 	const productPricesCollection = database.collections.get(ProductPrice.table);
 
+	console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
+	console.log(products);
+	console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
 	const createRecord = async (productToCreate, options={}) => {
 		await database.action(async () => {
 			if (productToCreate.costPrice > productToCreate.sellingPrice) {
@@ -483,8 +486,10 @@ const Products = (props) => {
 				aProduct.description = productToCreate.description;
 				aProduct.quantity = productToCreate.quantity;
 				aProduct.sellingPrice = productToCreate.sellingPrice;
+				/*
 				aProduct.categoryId = productToCreate.categoryId;
 				aProduct.brandId = productToCreate.brandId;
+				*/
 				if (brand) aProduct.brand.set(brand);
 				if (category) aProduct.category.set(category);
 				aProduct.createdBy.set(user);

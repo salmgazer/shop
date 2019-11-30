@@ -22,6 +22,7 @@ const CardListItem = (props) => {
 	});
 
 
+
 	const columns = [
 		{
 			title: 'Product',
