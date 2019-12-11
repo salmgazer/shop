@@ -22,7 +22,6 @@ import ExpenseCategory from "../model/expenseCategories/ExpenseCategory";
 const CardListItem = props => {
   const {
     entry,
-    company,
     model,
     displayName,
     createdBy,
@@ -226,7 +225,6 @@ class CardList extends React.Component {
       model,
       keyFieldName,
       search,
-      company,
       expenseCategories,
       user,
       users

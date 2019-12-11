@@ -18,11 +18,9 @@ import withObservables from "@nozbe/with-observables";
 import Chip from "@material-ui/core/Chip";
 
 import { Icon } from "antd";
-import ExpenseCategory from "../model/expenseCategories/ExpenseCategory";
 const CardListItem = props => {
   const {
     entry,
-    company,
     model,
     displayName,
     createdBy,
@@ -33,8 +31,7 @@ const CardListItem = props => {
     modelName,
     displayNameField,
     fieldNames,
-    expenseCategories,
-    database
+    expenseCategories
   } = props;
 
   return (
@@ -218,7 +215,6 @@ class CardList extends React.Component {
       model,
       keyFieldName,
       search,
-      company,
       expenseCategories,
       user,
       users
