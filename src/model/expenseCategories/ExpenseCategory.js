@@ -18,6 +18,7 @@ export default class ExpenseCategory extends Model {
   };
 
   @field("name") name;
+	@field('company_id') companyId;
   @relation("users", "created_by") createdBy;
   @readonly @date("created_at") createdAt;
   @readonly @date("updated_at") updatedAt;

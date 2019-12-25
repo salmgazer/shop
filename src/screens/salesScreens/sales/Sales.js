@@ -9,14 +9,14 @@ import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
-  SideSheet,
-  TextInput,
-  Textarea,
-  Position,
-  Dialog,
-  Pane,
-  toaster
-  // eslint-disable-next-line import/no-unresolved
+	SideSheet,
+	TextInput,
+	Textarea,
+	Position,
+	Dialog,
+	Pane,
+	toaster, Avatar
+	// eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
 import SalesCardList from "../../../components/SalesCardList";
 import MyLocal from "../../../services/MyLocal";
@@ -623,7 +623,7 @@ const CreateComponent = props => {
                         setState({ isShown: true });
                       }}
                     >
-                      Invoice
+                      Save
                     </Button>
                   </Pane>
                 )}
@@ -711,16 +711,18 @@ const CreateComponent = props => {
             ""
           )}
         </SideSheet>
-        <button
-          className="sell-btn"
-          type="danger"
-          shape="round"
-          icon="dollar"
-          size="large"
-          onClick={handleClickOpen}
-        >
-          Sell
-        </button>
+				<Avatar
+					style={{
+						backgroundColor: 'orange',
+						float: 'right',
+						marginRight: '20px',
+						marginBottom: '20px',
+            cursor: 'pointer'
+					}}
+					onClick={handleClickOpen}
+          isSolid name="+"
+          size={60}
+        />
       </React.Fragment>
     </div>
   );
@@ -844,6 +846,7 @@ const Sales = props => {
       const newSale = await salesCollection.create(sale => {
         sale.discount = discount;
         sale.type = saleType;
+        sale.companyId = company.id;
         sale.createdBy.set(user);
         if (currentCustomer) {
           sale.customer.set(currentCustomer);

@@ -7,6 +7,7 @@ const productSchema = {
 		{ name: 'selling_price', type: 'number' },
 		{ name: 'category_id', type: 'string' },
 		{ name: 'brand_id', type: 'string' },
+		{ name: 'company_id', type: 'string' },
 		{ name: 'created_by', type: 'string' },
 		{ name: 'created_at', type: 'number' },
 		{ name: 'updated_at', type: 'number' },

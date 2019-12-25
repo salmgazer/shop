@@ -16,6 +16,7 @@ export default class Sale extends Model {
 	@field('type') type; // invoice or sale
 	@field('discount') discount;
 	@relation('customers', 'customer_id') customer;
+	@field('company_id') companyId;
 	@relation('users', 'created_by') createdBy;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;
@@ -26,6 +27,6 @@ export default class Sale extends Model {
 		.get('sale_entries').query(Q.where('sale_id', this.id));
 
 	async remove() {
-		await this.destroyPermanently(); // syncable
+		await this.markAsDeleted(); // syncable
 	}
 }

@@ -13,6 +13,7 @@ export default class ProductPrice extends Model {
 	@field('price') price; // cost price
 	@field('quantity') quantity;
 	@relation('products', 'product_id') product;
+	@field('company_id') companyId;
 	@relation('users', 'created_by') createdBy;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;

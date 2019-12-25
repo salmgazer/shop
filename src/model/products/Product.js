@@ -4,6 +4,7 @@ import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 export default class Product extends Model {
   static table = 'products';
+  static deletable = false;
 
   static associations = {
     brands: { type: 'belongs_to', key: 'brand_id' },
@@ -20,6 +21,7 @@ export default class Product extends Model {
   @field('category_id') categoryId;
   @relation('brands', 'brand_id') brand;
 	@relation('categories', 'category_id') category;
+	@field('company_id') companyId;
 	@relation('users', 'created_by') createdBy;
   @readonly @date('created_at') createdAt;
   @readonly @date('updated_at') updatedAt;

@@ -9,13 +9,11 @@ import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
   SideSheet,
-  Button,
-  TextInput,
-  Icon,
   FilePicker,
   toaster
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
+import {Button, Icon, Input} from 'antd';
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
@@ -51,7 +49,7 @@ const CreateComponent = props => {
               >
                 Create new Category
               </h3>
-              <TextInput
+              <Input
                 required
                 name="name"
                 value={state.newCategoryName}
@@ -62,7 +60,7 @@ const CreateComponent = props => {
               <div style={{ margin: "0 auto", marginTop: "20px" }}>
                 <Button
                   onClick={() => setState({ isShown: false })}
-                  intent="danger"
+                  type="danger"
                 >
                   Cancel
                 </Button>
@@ -71,7 +69,6 @@ const CreateComponent = props => {
                     await createRecord({ name: state.newCategoryName });
                     setState({ isShown: false, newCategoryName: "" });
                   }}
-                  intent="success"
                   style={{ marginLeft: "20px" }}
                 >
                   Save
@@ -110,12 +107,21 @@ const CreateComponent = props => {
               />
             </div>
           </SideSheet>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ isShown: true })}
-          >
-            Add Category
-          </button>
+					<Button
+						onClick={() => setState({ isShown: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -144,7 +150,7 @@ const EditComponent = props => {
               >
                 Update {modelName}
               </h3>
-              <TextInput
+              <Input
                 required
                 name="name"
                 value={state.newCategoryName}
@@ -185,7 +191,6 @@ const EditComponent = props => {
             className="hand-pointer"
             size={20}
             color="muted"
-            marginRight={20}
           />
         </React.Fragment>
       )}
@@ -220,6 +225,7 @@ const Categories = props => {
 
       const newCategory = await categoriesCollection.create(category => {
         category.name = categoryToCreate.name;
+        category.companyId = company.id;
         category.createdBy.set(user);
       });
 
@@ -273,7 +279,7 @@ const Categories = props => {
           </div>
           <div className="bottom-area">
             <a onClick={() => history.push("sales")}>
-              <Icon icon="arrow-left" marginRight={16} />
+              <Icon icon="arrow-left" />
               Jump to Sales
             </a>
           </div>

@@ -14,6 +14,7 @@ import SaleEntry from "./saleEntries/SaleEntry";
 import ProductPrice from "./productPrices/ProductPrice";
 import Expense from "./expenses/Expense";
 import ExpenseCategory from "./expenseCategories/ExpenseCategory";
+import Setting from "./settings/Setting";
 
 
 const adapter = new LokiJSAdapter({
@@ -35,7 +36,8 @@ export default new Database({
     SaleEntry,
     ProductPrice,
     Expense,
-    ExpenseCategory
+    ExpenseCategory,
+    Setting
   ],
   actionsEnabled: true,
 });

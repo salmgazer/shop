@@ -5,6 +5,7 @@ const salesSchema = {
 		{ name: 'type', type: 'string'},
 		{ name: 'customer_id', type: 'string' },
 		{ name: 'discount', type: 'number' },
+		{ name: 'company_id', type: 'string' },
 		{ name: 'created_by', type: 'string' },
 		{ name: 'created_at', type: 'number' },
 		{ name: 'updated_at', type: 'number' },

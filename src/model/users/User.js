@@ -4,6 +4,7 @@ import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 export default class User extends Model {
 	static table = 'users';
+	static deletable = true;
 
 	static associations = {
 		users: { type: 'belongs_to', key: 'created_by' },

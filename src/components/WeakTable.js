@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import pluralize from 'pluralize';
 import {
-	Button, Dialog, Icon, Pane, SideSheet, Combobox, SearchInput
+	Button, Dialog, Pane, SideSheet, Combobox, SearchInput
 } from 'evergreen-ui';
 import Grid from '@material-ui/core/Grid';
 import Component from "@reactions/component";
@@ -11,6 +11,7 @@ import 'date-fns';
 import {withDatabase} from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from '@material-ui/core/Chip';
+import {Icon} from 'antd';
 
 const CardListItem = (props) => {
 	const {entry, model, EditComponent, deleteRecord, updateRecord, keyFieldName, modelName, displayNameField, fieldNames } = props;
@@ -34,9 +35,6 @@ const CardListItem = (props) => {
 													if (value instanceof Date) {
 														value = value.toLocaleString().split(',')[0];
 													} else if (field.name === 'owner') {
-														console.log("+++++++++++++++++++++");
-														console.log(value);
-														console.log("+++++++++++++++++++++");
 														value = value.name;
 													}
 												}
@@ -76,7 +74,7 @@ const CardListItem = (props) => {
 				<div style={{color: '#7B8B9A', fontSize: '14px'}}></div>
 			</Grid>
 			<Grid item xs={1} container style={{ marginTop: '16px'}}>
-				<Grid item>
+				<Grid item style={{ marginRight: "15px" }}>
 					<EditComponent row={entry} modelName={modelName} updateRecord={updateRecord} keyFieldName={keyFieldName}/>
 				</Grid>
 				<Grid item>
@@ -97,9 +95,13 @@ const CardListItem = (props) => {
 										Are you sure you want to delete the {pluralize.singular(modelName)} <b
 										style={{color: 'red'}}>{entry[displayNameField]}</b>?
 									</Dialog>
-
-									<Icon icon="trash" size={20} color='muted' className="hand-pointer"
-												onClick={() => setState({isShown: true})}/>
+									<Icon
+										type="delete"
+										size={"large"}
+										color="muted"
+										className="hand-pointer"
+										onClick={() => setState({ isShown: true })}
+									/>
 								</Pane>
 							)}
 						</Component> : ''

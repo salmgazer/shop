@@ -12,6 +12,7 @@ import Categories from "./screens/inventoryScreens/categories/Categories";
 import Brands from "./screens/inventoryScreens/brands/Brands";
 import Expenses from "./screens/expenditureScreens/expenditure/Expenses";
 import ExpenseCategories from "./screens/expenditureScreens/categories/Categories";
+import Settings from "./screens/settingsScreens/sync/Settings";
 import { toaster } from "evergreen-ui";
 import {
   HashRouter as Router,
@@ -107,7 +108,7 @@ class App extends React.Component {
 
   render() {
     let { companyCode } = MyLocal;
-    const { companyName } = MyLocal;
+    const { companyName, companyId } = MyLocal;
 
     if (!MyLocal.sessionExists()) {
       const splitPath = window.location.pathname.split("/");
@@ -228,20 +229,6 @@ class App extends React.Component {
                 }}
               />
               <Route
-                path={`/companies`}
-                render={() => {
-                  setPageBackground("#f4f5f7");
-                  this.setTitle(`Setup | ${companyName}`);
-                  return (
-                    <Companies
-                      DrawerIcon={this.DrawerIcon}
-                      parentLocation="Inventory"
-                      modelName="company"
-                    />
-                  );
-                }}
-              />
-              <Route
                 path={`/${companyCode}/expenses`}
                 render={() => {
                   setPageBackground("#f4f5f7");
@@ -270,7 +257,7 @@ class App extends React.Component {
                 }}
               />
               <Route
-                path={`/users`}
+                path={`/shoppers`}
                 render={() => {
                   setPageBackground("#f4f5f7");
                   this.setTitle(`Users | ${companyName}`);
@@ -279,6 +266,30 @@ class App extends React.Component {
                   );
                 }}
               />
+							<Route
+								path={`/kiosks`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Setup | ${companyName}`);
+									return (
+										<Companies
+											DrawerIcon={this.DrawerIcon}
+											parentLocation="Inventory"
+											modelName="company"
+										/>
+									);
+								}}
+							/>
+							<Route
+								path={`/${companyCode}/settings`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Settings | ${companyName}`);
+									return (
+										<Settings DrawerIcon={this.DrawerIcon} modelName="settings" />
+									);
+								}}
+							/>
               <Route path="*">
                 <NoMatch />
               </Route>

@@ -9,12 +9,9 @@ import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
   SideSheet,
-  Button,
-  TextInput,
-  Textarea,
-  Icon
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
+import {Button, Icon, Input} from 'antd';
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";
@@ -22,6 +19,7 @@ import Company from "../../../model/companies/Company";
 import Customer from "../../../model/customers/Customer";
 import TopNav from "../../../components/TopNav";
 
+const {TextArea} = Input;
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
   { name: "note", label: "Note", type: "string" },
@@ -59,7 +57,7 @@ const CreateComponent = props => {
                 Create new Customer
               </h3>
               <label>Name: &nbsp;&nbsp;&nbsp;</label>
-              <TextInput
+              <Input
                 required
                 name="name"
                 value={state.newCustomerName}
@@ -69,7 +67,7 @@ const CreateComponent = props => {
               />
               <br />
               <label>Phone: &nbsp;&nbsp;</label>
-              <TextInput
+              <Input
                 required
                 name="phone"
                 value={state.newCustomerPhone}
@@ -80,7 +78,8 @@ const CreateComponent = props => {
               <br />
               <label>Note about customer:</label>
               <br />
-              <Textarea
+              <TextArea
+                rows={4}
                 name="note"
                 value={state.newCustomerNotes}
                 onChange={e => setState({ newCustomerNotes: e.target.value })}
@@ -115,12 +114,21 @@ const CreateComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ isShown: true })}
-          >
-            Add Customer
-          </button>
+          <Button
+						onClick={() => setState({ isShown: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -154,7 +162,7 @@ const EditComponent = props => {
               >
                 Update {modelName}
               </h3>
-              <TextInput
+              <Input
                 required
                 name="name"
                 value={state.newCustomerName}
@@ -162,7 +170,7 @@ const EditComponent = props => {
                 placeholder="Name of customer"
                 style={{ marginBottom: "20px" }}
               />
-              <TextInput
+              <Input
                 required
                 name="phone"
                 value={state.newCustomerPhone}
@@ -170,7 +178,7 @@ const EditComponent = props => {
                 placeholder="Phone number of customer"
                 style={{ marginBottom: "20px" }}
               />
-              <Textarea
+              <TextArea
                 name="note"
                 value={state.newCustomerNotes}
                 onChange={e => setState({ newCustomerNotes: e.target.value })}
@@ -237,6 +245,7 @@ const Customers = props => {
         customer.name = customerToCreate.name;
         customer.note = customerToCreate.note;
         customer.phone = customerToCreate.phone;
+        customer.companyId = company.id;
         customer.createdBy.set(user);
       });
 

@@ -198,16 +198,21 @@ const DrawerCreateComponent = props => {
               </Button>
             </div>
           </Drawer>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ visible: true })}
-            type="danger"
-            shape="circle"
-            icon="plus"
-            size="large"
-          >
-            Add Expense
-          </button>
+					<Button
+						onClick={() => setState({ visible: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -427,6 +432,7 @@ const Expenses = props => {
         expense.purpose = expenseToCreate.purpose;
         expense.date = expenseToCreate.date;
         expense.expenseCategory.set(expenseCategory);
+        expense.companyId = company.id;
         expense.createdBy.set(user);
       });
 

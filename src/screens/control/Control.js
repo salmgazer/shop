@@ -7,11 +7,12 @@ import {toaster} from "evergreen-ui";
 import MyLocal from "../../services/MyLocal";
 import { PageHeader } from 'antd';
 import TopNav from "../../components/TopNav";
+import Company from "../../model/companies/Company";
 
 
 const Control = (props) => {
 
-	const {history, company, user} = props;
+	const {history, company, user, companies} = props;
 
 	if (!company) {
 		toaster.danger('You need to login');
@@ -50,5 +51,6 @@ const Control = (props) => {
 export default withDatabase(withObservables([], ({ database }) => ({
 	brands: database.collections.get('brands').query().observe(),
 	company: database.collections.get('companies').find(MyLocal.companyId),
+	companies: database.collections.get(Company.table).query().fetch(),
 	user: database.collections.get('users').find(MyLocal.userId)
 }))(withRouter(Control)));

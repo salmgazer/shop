@@ -4,6 +4,7 @@ const productPricesSchema = {
 		{ name: 'price', type: 'number' },
 		{ name: 'quantity', type: 'number' },
 		{ name: 'product_id', type: 'string' },
+		{ name: 'company_id', type: 'string' },
 		{ name: 'created_by', type: 'string' },
 		{ name: 'created_at', type: 'number' },
 		{ name: 'updated_at', type: 'number' },

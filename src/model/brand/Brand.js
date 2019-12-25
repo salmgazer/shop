@@ -3,7 +3,7 @@ import {field, date, text, readonly, children, relation} from '@nozbe/watermelon
 
 export default class Brand extends Model {
   static table = 'brands';
-  static deletable = true;
+  static deletable = false;
 
   static associations = {
     products: { type: 'has_many', foreignKey: 'brand_id' },
@@ -12,6 +12,7 @@ export default class Brand extends Model {
 
   @field('name') name;
   @text('notes') notes;
+	@field('company_id') companyId;
 	@relation('users', 'created_by') createdBy;
 	@relation('users', 'user_id') user;
   @readonly @date('created_at') createdAt;

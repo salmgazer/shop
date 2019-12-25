@@ -27,6 +27,7 @@ import Company from "../../../model/companies/Company";
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
+  { name: "companyId", label: "Company ID", type: "string" },
   { name: "createdBy", label: "Created By", type: "string" },
   { name: "createdAt", label: "Created", type: "string" },
   { name: "updatedAt", label: "Updated", type: "string" }
@@ -77,7 +78,7 @@ const DrawerCreateComponent = props => {
                     })(
                       <Input
                         onChange={handleChange}
-                        placeholder="Please enter user name"
+                        placeholder="Please enter name of expense category"
                       />
                     )}
                   </Form.Item>
@@ -111,16 +112,21 @@ const DrawerCreateComponent = props => {
               </Button>
             </div>
           </Drawer>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ visible: true })}
-            type="danger"
-            shape="circle"
-            icon="plus"
-            size="large"
-          >
-            Add Category
-          </button>
+					<Button
+						onClick={() => setState({ visible: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -284,6 +290,7 @@ const Categories = props => {
       const newExpenseCategory = await expenseCategoriesCollection.create(
         expenseCategory => {
           expenseCategory.name = expenseCategoryToCreate.name;
+          expenseCategory.companyId = company.id;
           expenseCategory.createdBy.set(user);
         }
       );

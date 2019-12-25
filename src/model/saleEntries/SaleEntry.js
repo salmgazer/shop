@@ -21,6 +21,7 @@ export default class SaleEntry extends Model {
 	@relation('products', 'product_id') product;
 	@relation('sales', 'sale_id') sale;
 	@json('cost_price_allocations', sanitizeCostPriceAllocations) costPriceAllocations;
+	@field('company_id') companyId;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;
 

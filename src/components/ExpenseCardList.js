@@ -37,6 +37,8 @@ const CardListItem = props => {
     expenseCategory
   } = props;
 
+  console.log(entry);
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={2} style={{ width: "100px", marginTop: "7px" }}>
@@ -267,7 +269,7 @@ class CardList extends React.Component {
           </Grid>
           <Grid item xs={2}>
             <p style={{ color: "grey", marginBottom: "-5px" }}>
-              {entries[0].date ? "Date" : "Created on"}
+              {entries[0] && entries[0].date ? "Date" : "Created on"}
             </p>
           </Grid>
           <Grid item xs={3} style={{ color: "grey" }}>

@@ -13,6 +13,7 @@ export default class Customer extends Model {
 	@field('name') name;
 	@field('phone') phone;
 	@field('note') note;
+	@field('company_id') companyId;
 	@relation('users', 'created_by') createdBy;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;

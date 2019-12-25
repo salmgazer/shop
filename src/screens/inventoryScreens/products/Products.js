@@ -10,16 +10,17 @@ import pluralize from 'pluralize';
 import Chip from '@material-ui/core/Chip';
 import {
 	SideSheet,
-	Button,
 	TextInput,
 	Textarea,
-	Icon,
 	Pane,
 	Dialog,
 	FilePicker,
 	SearchInput,
 	toaster,
-	SelectMenu
+	SelectMenu,
+	Avatar,
+	Button,
+	Icon,
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
 import ProductCardList from "../../../components/ProductCardList";
@@ -199,9 +200,15 @@ const CreateComponent = (props) => {
 							/>
 						</div>
 					</SideSheet>
-					<button className="sell-btn" onClick={() => setState({ isShown: true })}>
-						Add Product
-					</button>
+					<Avatar
+						style={{
+							backgroundColor: 'orange',
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							cursor: 'pointer'
+						}}
+						onClick={() => setState({ isShown: true })} isSolid name="+" size={60} />
 				</React.Fragment>
 			)}
 		</Component>
@@ -299,8 +306,6 @@ const EditComponent = (props) => {
 											onChange={e => {
 												if (e.target.value) {
 													setState({stateProductPrices: productPrices.filter(pp => pp.price === parseInt(e.target.value, 10))});
-													console.log(e.target.value);
-													console.log(state.stateProductPrices);
 												} else {
 													setState({stateProductPrices: productPrices});
 												}
@@ -441,9 +446,6 @@ const Products = (props) => {
 	const productsCollection = database.collections.get(pluralize(modelName));
 	const productPricesCollection = database.collections.get(ProductPrice.table);
 
-	console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
-	console.log(products);
-	console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
 	const createRecord = async (productToCreate, options={}) => {
 		await database.action(async () => {
 			if (productToCreate.costPrice > productToCreate.sellingPrice) {
@@ -486,10 +488,7 @@ const Products = (props) => {
 				aProduct.description = productToCreate.description;
 				aProduct.quantity = productToCreate.quantity;
 				aProduct.sellingPrice = productToCreate.sellingPrice;
-				/*
-				aProduct.categoryId = productToCreate.categoryId;
-				aProduct.brandId = productToCreate.brandId;
-				*/
+				aProduct.companyId = company.id;
 				if (brand) aProduct.brand.set(brand);
 				if (category) aProduct.category.set(category);
 				aProduct.createdBy.set(user);
@@ -515,15 +514,9 @@ const Products = (props) => {
 	};
 
 	const saveProductPrice = async (record, product) => {
-		console.log("##################");
-		console.log(record);
-		console.log(product);
-
 		await database.action(async () => {
 			if (record.id) {
 				const productPrice = await productPricesCollection.find(record.id);
-				console.log(productPrice);
-				console.log("##################");
 				const updatedProductPrice = await productPrice.update(aProductPrice => {
 					aProductPrice.quantity = record.quantity;
 				});

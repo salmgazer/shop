@@ -10,16 +10,17 @@ import pluralize from "pluralize";
 import Grid from "@material-ui/core/Grid";
 import {
   SideSheet,
-  Button,
   TextInput,
   Textarea,
-  Icon,
   toaster,
   Combobox
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
+import { Button } from 'antd';
 import WeakTable from "../../../components/WeakTable";
 import User from "../../../model/users/User";
+import SyncService from "../../../services/SyncService";
+import {Icon} from 'antd';
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
@@ -183,7 +184,8 @@ const CreateComponent = props => {
                       email: state.newUserEmail,
                       password: state.newUserPassword,
                       address: state.newUserAddress,
-                      status: state.newUserStatus
+                      status: state.newUserStatus,
+                      deleted: false
                     });
                     setState({
                       isShown: false,
@@ -205,12 +207,21 @@ const CreateComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <button
-            className="sell-btn"
+					<Button
             onClick={() => setState({ isShown: true })}
-          >
-            Add User
-          </button>
+            shape="circle"
+            icon="plus"
+            size='large'
+            style={{
+              float: 'right',
+              marginRight: '20px',
+              marginBottom: '20px',
+              backgroundColor: 'orange',
+              color: 'white',
+              width: '60px',
+              height: '60px'
+            }}
+          />
         </React.Fragment>
       )}
     </Component>
@@ -286,14 +297,13 @@ const EditComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <Icon
-            icon="edit"
-            onClick={() => setState({ isShown: true })}
-            className="hand-pointer"
-            size={20}
-            color="muted"
-            marginRight={20}
-          />
+					<Icon
+						type="edit"
+						onClick={() => setState({ isShown: true })}
+						className="hand-pointer"
+						size={20}
+						color="muted"
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -315,7 +325,7 @@ const Users = props => {
 
   const createRecord = async userToCreate => {
     await database.action(async () => {
-      const newUser = await usersCollection.create(user => {
+      usersCollection.create(user => {
         user.name = userToCreate.name;
         user.phone = userToCreate.phone;
         user.address = userToCreate.address;
@@ -325,9 +335,10 @@ const Users = props => {
         user.status = userToCreate.status;
         user.profilePicture = userToCreate.profilePicture;
         // user.createdBy = userToCreate.createdBy;
+      }).then(async (createdUser) => {
+				console.log(`Created ${createdUser.name}`);
+				await SyncService.sync(null, database, 'superadmin');
       });
-
-      console.log(`Created ${newUser.name}`);
     });
   };
 
@@ -359,11 +370,12 @@ const Users = props => {
           <div id="nav-list">
             <button
               className="nav-item"
-              onClick={() => history.push("companies")}
+              onClick={() => history.push("kiosks")}
             >
               Companies
             </button>
             <button className="nav-item active">Users</button>
+						<button onClick={() => SyncService.sync(null, database, 'superadmin')}>Sync</button>
           </div>
         </div>
         <div id="main-body">
@@ -446,6 +458,3 @@ export default class Parent extends React.Component {
   }
 }
 
-Parent.propTypes = {
-  company: PropTypes.object.isRequired
-};

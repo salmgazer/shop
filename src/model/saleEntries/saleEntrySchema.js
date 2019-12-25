@@ -10,6 +10,7 @@ const salesEntrySchema = {
 		{ name: 'cost_price_allocations', type: 'string' },
 		{ name: 'sale_id', type: 'string' },
 		{ name: 'total', type: 'number' },
+		{ name: 'company_id', type: 'string' },
 		{ name: 'created_at', type: 'number' },
 		{ name: 'updated_at', type: 'number' },
 	]

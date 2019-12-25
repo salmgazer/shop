@@ -11,9 +11,10 @@ import salesEntrySchema from "./saleEntries/saleEntrySchema";
 import productPricesSchema from "./productPrices/productPriceSchema";
 import expenseCategorySchema from "./expenseCategories/expenseCategorySchema";
 import expenseSchema from "./expenses/expenseSchema";
+import settingsSchema from "./settings/settingSchema";
 
 export default appSchema({
-  version: 10,
+  version: 1,
   tables: [
     tableSchema(companySchema),
     tableSchema(userSchema),
@@ -26,6 +27,7 @@ export default appSchema({
     tableSchema(salesEntrySchema),
     tableSchema(productPricesSchema),
     tableSchema(expenseCategorySchema),
-    tableSchema(expenseSchema)
+    tableSchema(expenseSchema),
+    tableSchema(settingsSchema)
   ]
 });

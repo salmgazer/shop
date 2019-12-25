@@ -9,19 +9,18 @@ import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
   SideSheet,
-  Button,
-  TextInput,
-  Textarea,
-  Icon,
   FilePicker,
   toaster
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
+import {Icon, Button, Input} from 'antd';
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import Brand from "../../../model/brand/Brand";
 import TopNav from "../../../components/TopNav";
+
+const { TextArea } = Input;
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
@@ -47,25 +46,26 @@ const CreateComponent = props => {
               <h3
                 style={{
                   fontSize: "40px",
-                  fontWeight: "400",
-                  color: "#09d3ac"
+                  color: "#09d3ac",
+                  fontWeight: '300'
                 }}
               >
                 Create new Brand
               </h3>
-              <TextInput
-                required
-                name="name"
-                value={state.newBrandName}
-                onChange={e => setState({ newBrandName: e.target.value })}
-                placeholder="Name of brand"
-                style={{ marginBottom: "20px" }}
+							<Input
+								required
+								name="name"
+								value={state.newBrandName}
+								onChange={e => setState({ newBrandName: e.target.value })}
+								placeholder="Name of brand"
+								style={{ marginBottom: "20px" }}
               />
-              <Textarea
-                name="notes"
-                value={state.newBrandNotes}
-                onChange={e => setState({ newBrandNotes: e.target.value })}
-                placeholder="Note about brand"
+							<TextArea
+                rows={4}
+								name="notes"
+								value={state.newBrandNotes}
+								onChange={e => setState({ newBrandNotes: e.target.value })}
+								placeholder="Note about brand"
               />
               <div style={{ margin: "0 auto", marginTop: "20px" }}>
                 <Button
@@ -125,12 +125,21 @@ const CreateComponent = props => {
               />
             </div>
           </SideSheet>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ isShown: true })}
-          >
-            Add Brand
-          </button>
+					<Button
+						onClick={() => setState({ isShown: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -163,7 +172,7 @@ const EditComponent = props => {
               >
                 Update {modelName}
               </h3>
-              <TextInput
+              <Input
                 required
                 name="name"
                 value={state.newBrandName}
@@ -175,7 +184,7 @@ const EditComponent = props => {
                   height: "50px"
                 }}
               />
-              <Textarea
+              <TextArea
                 name="notes"
                 value={state.newBrandNotes}
                 onChange={e => setState({ newBrandNotes: e.target.value })}
@@ -247,6 +256,7 @@ const Brands = props => {
       const newBrand = await brandsCollection.create(brand => {
         brand.name = brandToCreate.name;
         brand.notes = brandToCreate.notes;
+        brand.companyId = company.id;
         brand.createdBy.set(user);
       });
 

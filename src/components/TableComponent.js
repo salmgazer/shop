@@ -58,9 +58,6 @@ class MuiVirtualizedTable extends React.PureComponent {
 		}
 
 		const { columns, classes, rowHeight, onRowClick, EditComponent, CreateComponent } = this.props;
-		console.log("$$$$$$$$$$$$$$$$$$$");
-		console.log(EditComponent);
-		console.log("$$$$$$$$$$$$$$$$$$$");
 		return (
 			<TableCell
 				component="div"

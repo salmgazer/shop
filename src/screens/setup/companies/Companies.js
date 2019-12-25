@@ -10,10 +10,8 @@ import pluralize from "pluralize";
 import Grid from "@material-ui/core/Grid";
 import {
   SideSheet,
-  Button,
   TextInput,
   Textarea,
-  Icon,
   Combobox,
   SelectMenu
   // eslint-disable-next-line import/no-unresolved
@@ -21,6 +19,8 @@ import {
 import WeakTable from "../../../components/WeakTable";
 import Company from "../../../model/companies/Company";
 import User from "../../../model/users/User";
+import SyncService from "../../../services/SyncService";
+import {Button, Icon} from 'antd';
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
@@ -45,7 +45,7 @@ const CreateComponent = props => {
         newCompanyPhone: "",
         newCompanyLogo: null,
         newCompanyStatus: "inactive",
-        newCompanyCategory: "null",
+        newCompanyCategory: null,
         newCompanyUserId: ""
       }}
     >
@@ -217,12 +217,21 @@ const CreateComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <button
-            className="sell-btn"
-            onClick={() => setState({ isShown: true })}
-          >
-            Add Company
-          </button>
+					<Button
+						onClick={() => setState({ isShown: true })}
+						shape="circle"
+						icon="plus"
+						size='large'
+						style={{
+							float: 'right',
+							marginRight: '20px',
+							marginBottom: '20px',
+							backgroundColor: 'orange',
+							color: 'white',
+							width: '60px',
+							height: '60px'
+						}}
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -300,14 +309,13 @@ const EditComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <Icon
-            icon="edit"
-            onClick={() => setState({ isShown: true })}
-            className="hand-pointer"
-            size={20}
-            color="muted"
-            marginRight={20}
-          />
+					<Icon
+						type="edit"
+						onClick={() => setState({ isShown: true })}
+						className="hand-pointer"
+						size={20}
+						color="muted"
+					/>
         </React.Fragment>
       )}
     </Component>
@@ -328,15 +336,9 @@ const Companies = props => {
   } = props;
   const companiesCollection = database.collections.get(pluralize(modelName));
 
-  console.log("####################");
-  console.log(users);
-  console.log(companies);
-  console.log(allCompanies);
-  console.log("####################");
-
   const createRecord = async companyToCreate => {
     await database.action(async () => {
-      const newCompany = await companiesCollection.create(company => {
+      companiesCollection.create(company => {
         company.name = companyToCreate.name;
         company.description = companyToCreate.description;
         company.code = companyToCreate.code;
@@ -347,17 +349,18 @@ const Companies = props => {
         company.logo = companyToCreate.logo;
         company.category = companyToCreate.category;
         company.status = companyToCreate.status;
+      }).then(async (createdCompany) => {
+				await database.action(async () => {
+					database.collections.get("users_companies").create(userCompany => {
+						userCompany.userId = companyToCreate.userId;
+						userCompany.companyId = createdCompany.id;
+						userCompany.role = "owner";
+					}).then( async (createdUserCompany) => {
+						console.log(`Created ${createdCompany.name}, owned by ${createdUserCompany.userId}`);
+						await SyncService.sync(null, database, 'superadmin');
+					});
+				});
       });
-
-      await database.collections.get("users_companies").create(userCompany => {
-        userCompany.userId = companyToCreate.userId;
-        userCompany.companyId = newCompany.id;
-        userCompany.role = "owner";
-      });
-
-      console.log(
-        `Created ${newCompany.name}, owned by ${companyToCreate.userId}`
-      );
     });
   };
 
@@ -388,9 +391,10 @@ const Companies = props => {
           </h3>
           <div id="nav-list">
             <button className="nav-item active">Companies</button>
-            <button className="nav-item" onClick={() => history.push("users")}>
+            <button className="nav-item" onClick={() => history.push("shoppers")}>
               Users
             </button>
+            <button onClick={() => SyncService.sync(null, database, 'superadmin')}>Sync</button>
           </div>
         </div>
         <div id="main-body">
