@@ -853,6 +853,10 @@ const Sales = props => {
         }
       });
 
+      console.log("%%%%%%%%%%%%%%%%%%%%%");
+      console.log(newSale);
+			console.log("%%%%%%%%%%%%%%%%%%%%%");
+
       if (newSale && newSale.id) {
         saleEntries.forEach(async saleEntry => {
           const product = await productsCollection.find(saleEntry.productId);

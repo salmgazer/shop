@@ -489,8 +489,12 @@ const Products = (props) => {
 				aProduct.quantity = productToCreate.quantity;
 				aProduct.sellingPrice = productToCreate.sellingPrice;
 				aProduct.companyId = company.id;
-				if (brand) aProduct.brand.set(brand);
-				if (category) aProduct.category.set(category);
+				if (brand) {
+					aProduct.brand.set(brand);
+				}
+				if (category) {
+					aProduct.category.set(category);
+				}
 				aProduct.createdBy.set(user);
 			});
 

@@ -27,11 +27,6 @@ export default class SyncService {
 				// check if row does not exist and move it from updated to created
 				const tables = Object.keys(changes);
 
-				console.log("%%%%%%%%%%%%%%%%%%%%%%%%");
-				console.log("%%%%%%%%%%%%%%%%%%%%%%%%");
-				console.log(changes);
-				console.log("%%%%%%%%%%%%%%%%%%%%%%%%");
-				console.log("%%%%%%%%%%%%%%%%%%%%%%%%");
 
 				/*
 				for (let m = 0; m < tables.length; m++) {
