@@ -121,7 +121,7 @@ class ComponentToPrint extends React.Component {
                 count = count + 1;
                 return (
                   <tr key={product.id}>
-                    <td>{count}</td>
+                    <td>({count})</td>
                     <td className="service">{product.name}</td>
 										<td className="qty">{saleEntry.quantity}</td>
                     <td className="unit">{saleEntry.sellingPrice}</td>
