@@ -107,7 +107,7 @@ class ComponentToPrint extends React.Component {
             <thead>
               <tr>
                 <th></th>
-                <th className="service">Product</th>
+                <th className="service">PRODUCT</th>
                 <th>QUANTITY</th>
                 <th>UNIT PRICE</th>
                 <th>TOTAL</th>
@@ -134,7 +134,7 @@ class ComponentToPrint extends React.Component {
               {discount && discount > 0 ? (
                 <tr>
                   <td colSpan="4" className="grand total">
-                    Discount
+                    DISCOUNT
                   </td>
                   <td className="grand total">GHS {discount}</td>
                 </tr>
