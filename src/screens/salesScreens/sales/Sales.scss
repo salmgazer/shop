@@ -54,7 +54,6 @@
     background: #ffffff;
     font-family: Arial, sans-serif;
     font-size: 12px;
-    font-family: Arial;
   }
 
   header {
@@ -109,9 +108,8 @@
   }
 
   table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
+    width: 80%;
+    margin: 0 auto;
     margin-bottom: 20px;
   }
 
@@ -119,43 +117,6 @@
     background: #f5f5f5;
   }
 
-  table th,
-  table td {
-    text-align: center;
-  }
-
-  table th {
-    padding: 5px 20px;
-    color: #5d6975;
-    border-bottom: 1px solid #c1ced9;
-    white-space: nowrap;
-    font-weight: normal;
-  }
-
-  table .service,
-  table .desc {
-    text-align: left;
-  }
-
-  table td {
-    padding: 20px;
-    text-align: right;
-  }
-
-  table td.service,
-  table td.desc {
-    vertical-align: top;
-  }
-
-  table td.unit,
-  table td.qty,
-  table td.total {
-    font-size: 1.2em;
-  }
-
-  table td.grand {
-    border-top: 1px solid #5d6975;
-  }
 
   #notices .notice {
     color: #5d6975;

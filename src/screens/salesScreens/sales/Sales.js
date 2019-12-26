@@ -61,6 +61,7 @@ class ComponentToPrint extends React.Component {
     const currentCustomer = customer
       ? customers.find(c => c.id === customer)
       : null;
+    let count = 0;
     return (
       <div id="receipt-div">
         <header className="clearfix">
@@ -105,10 +106,10 @@ class ComponentToPrint extends React.Component {
           <table>
             <thead>
               <tr>
+                <th></th>
                 <th className="service">Product</th>
-                <th className="desc">DESCRIPTION</th>
-                <th>PRICE</th>
-                <th>QTY</th>
+                <th>QUANTITY</th>
+                <th>UNIT PRICE</th>
                 <th>TOTAL</th>
               </tr>
             </thead>
@@ -117,16 +118,19 @@ class ComponentToPrint extends React.Component {
                 const product = products.find(
                   p => p.id === saleEntry.productId
                 );
+                count = count + 1;
                 return (
                   <tr key={product.id}>
+                    <td>{count}</td>
                     <td className="service">{product.name}</td>
-                    <td className="desc">{product.description}</td>
+										<td className="qty">{saleEntry.quantity}</td>
                     <td className="unit">{saleEntry.sellingPrice}</td>
-                    <td className="qty">{saleEntry.quantity}</td>
-                    <td className="total">{saleEntry.total}</td>
+                    <td className="total">GHS {saleEntry.total}</td>
                   </tr>
                 );
               })}
+              <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
               {discount && discount > 0 ? (
                 <tr>
                   <td colSpan="4" className="grand total">
@@ -853,9 +857,6 @@ const Sales = props => {
         }
       });
 
-      console.log("%%%%%%%%%%%%%%%%%%%%%");
-      console.log(newSale);
-			console.log("%%%%%%%%%%%%%%%%%%%%%");
 
       if (newSale && newSale.id) {
         saleEntries.forEach(async saleEntry => {
