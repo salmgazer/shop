@@ -181,7 +181,8 @@ const SaleEntryComponent = props => {
     updateSaleEntry,
     saleEntry,
     removeSaleEntry,
-    productPrices
+    productPrices,
+    saleEntries,
   } = props;
   const [selectedProduct, setSelectedProduct] = React.useState(
     saleEntry.productId || ""
@@ -256,7 +257,7 @@ const SaleEntryComponent = props => {
             0
           }
         >
-          {products.map(product => (
+          {products.filter(p => !saleEntries.map(se => se.productId).includes(p.id)).map(product => (
             <Option key={product.id} value={product.id}>
               {product.name}
             </Option>
@@ -405,6 +406,7 @@ const CreateComponent = props => {
   };
 
   const handleClose = () => {
+    setSaleEntries([]);
     setOpen(false);
   };
 
@@ -431,7 +433,7 @@ const CreateComponent = props => {
         <SideSheet
           position={Position.LEFT}
           isShown={open}
-          onCloseComplete={() => setOpen(false)}
+          onCloseComplete={handleClose}
         >
           <div id="calculator-view">
             <h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
@@ -473,6 +475,9 @@ const CreateComponent = props => {
               icon="plus"
               size="large"
               onClick={() => {
+                if (salesEntries.length === products.length) {
+                  return;
+                }
                 setCount(count + 1);
                 console.log(count);
                 console.log(salesEntries);
@@ -493,7 +498,7 @@ const CreateComponent = props => {
               Add Item
             </Button>
           </div>
-          <div style={{ marginBottom: "40px" }}>
+          <div style={{ marginBottom: '20px' }}>
             <b
               style={{
                 marginLeft: "50px",
@@ -505,7 +510,7 @@ const CreateComponent = props => {
             </b>
             <Select
               showSearch
-              style={{ width: 170 }}
+              style={{ width: '60%' }}
               placeholder="Select a customer"
               optionFilterProp="children"
               onChange={item => setSelectedCustomer(item)}
@@ -517,27 +522,29 @@ const CreateComponent = props => {
             >
               {customers.map(customer => (
                 <Option key={customer.id} value={customer.id}>
-                  {customer.name}
+                  {customer.name} - {customer.phone}
                 </Option>
               ))}
             </Select>
-            <b
-              style={{
-                marginLeft: "50px",
-                marginRight: "20px",
-                fontWeight: "normal"
-              }}
-            >
-              Discount:
-            </b>
-            <InputNumber
-              min={0}
-              defaultValue={0}
-              style={{
-                width: "70px"
-              }}
-              onChange={value => setDiscount(value)}
-            />
+          </div>
+          <div  style={{ marginBottom: "40px"}}>
+						<b
+							style={{
+								marginLeft: "50px",
+								marginRight: "65px",
+								fontWeight: "normal"
+							}}
+						>
+							Discount:
+						</b>
+						<InputNumber
+							min={0}
+							defaultValue={0}
+							style={{
+								width: "200px"
+							}}
+							onChange={value => setDiscount(value)}
+						/>
           </div>
           {salesEntries.map(saleEntry => (
             <SaleEntryComponent
@@ -545,6 +552,7 @@ const CreateComponent = props => {
               key={saleEntry.key}
               updateSaleEntry={upateSaleEntry}
               saleEntry={saleEntry}
+              saleEntries={salesEntries}
               database={database}
               products={products}
               productPrices={productPrices}
