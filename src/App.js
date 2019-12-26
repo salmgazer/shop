@@ -12,7 +12,8 @@ import Categories from "./screens/inventoryScreens/categories/Categories";
 import Brands from "./screens/inventoryScreens/brands/Brands";
 import Expenses from "./screens/expenditureScreens/expenditure/Expenses";
 import ExpenseCategories from "./screens/expenditureScreens/categories/Categories";
-import Settings from "./screens/settingsScreens/sync/Settings";
+import Settings from "./screens/settingsScreens/sync/Sync";
+import Profile from "./screens/settingsScreens/profile/Profile";
 import { toaster } from "evergreen-ui";
 import {
   HashRouter as Router,
@@ -281,12 +282,22 @@ class App extends React.Component {
 								}}
 							/>
 							<Route
-								path={`/${companyCode}/settings`}
+								path={`/${companyCode}/sync`}
 								render={() => {
 									setPageBackground("#f4f5f7");
-									this.setTitle(`Settings | ${companyName}`);
+									this.setTitle(`Sync | ${companyName}`);
 									return (
 										<Settings DrawerIcon={this.DrawerIcon} modelName="settings" />
+									);
+								}}
+							/>
+							<Route
+								path={`/${companyCode}/profile`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Profile | ${companyName}`);
+									return (
+										<Profile DrawerIcon={this.DrawerIcon} modelName="settings" />
 									);
 								}}
 							/>

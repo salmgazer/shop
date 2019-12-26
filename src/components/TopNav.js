@@ -12,7 +12,7 @@ const TopNav = ({user, history}) => {
 				content={
 					<Menu>
 						<Menu.Item
-							onSelect={() => history.push('settings')}
+							onSelect={() => history.push('sync')}
 							style={{color: 'black'}}
 						>
 							Settings <Icon type="setting" />

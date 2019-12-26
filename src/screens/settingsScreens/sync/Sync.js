@@ -1,7 +1,7 @@
 import React from "react";
 import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
-import "./Settings.css";
+import "./Sync.css";
 import { withRouter } from "react-router-dom";
 
 import PropTypes from "prop-types";
@@ -15,7 +15,7 @@ import SyncService from "../../../services/SyncService";
 
 
 
-class Settings extends React.Component{
+class Sync extends React.Component{
 
   constructor(props) {
     super(props);
@@ -24,12 +24,13 @@ class Settings extends React.Component{
   }
 
   async sync() {
-    console.log("About to sync");
+    alert("Wait for sync to complete");
     const {database, company} = this.props;
 
     SyncService.sync(company, database, '')
       .then(() => {
         console.log("Done syncing");
+        alert("Done syncing!");
       });
   }
 
@@ -57,6 +58,9 @@ class Settings extends React.Component{
 							<button className="nav-item active">
 								Sync
 							</button>
+							<button className="nav-item" onClick={() => history.push("profile")}>
+								Profile
+							</button>
 						</div>
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>
@@ -66,9 +70,7 @@ class Settings extends React.Component{
 						</div>
 					</div>
 					<div id="main-body">
-						<div>
-							here goes you
-						</div>
+						<h1 style={{ textAlgin: 'center'}}>Click "Sync" button below</h1>
 						<div id="bottom-area">
 							<button
 								className="sell-btn"
@@ -88,7 +90,7 @@ const EnhancedSync = withDatabase(
   withObservables(["searchConfig"], ({ database}) => ({
     company: database.collections.get("companies").find(MyLocal.companyId),
     user: database.collections.get("users").find(MyLocal.userId),
-  }))(withRouter(Settings))
+  }))(withRouter(Sync))
 );
 
 class Parent extends React.Component {
