@@ -7,13 +7,7 @@ import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
-import {
-  SideSheet,
-  FilePicker,
-  toaster
-  // eslint-disable-next-line import/no-unresolved
-} from "evergreen-ui";
-import {Button, Icon, Input} from 'antd';
+import {Button, Col, Drawer, Form, Icon, Input, Row, message} from 'antd';
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
@@ -21,6 +15,7 @@ import Category from "../../../model/categories/Category";
 import Company from "../../../model/companies/Company";
 import User from "../../../model/users/User";
 import TopNav from "../../../components/TopNav";
+import {Avatar, FilePicker} from "evergreen-ui";
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
@@ -29,98 +24,97 @@ const fieldNames = [
   { name: "updatedAt", label: "Updated", type: "string" }
 ];
 
-const CreateComponent = props => {
+const CreateComponentRaw = props => {
   const { createRecord } = props;
+  const {getFieldDecorator, getFieldValue} = props.form;
   return (
-    <Component initialState={{ isShown: false, newCategoryName: "" }}>
+    <Component initialState={{ isShown: false }}>
       {({ state, setState }) => (
         <React.Fragment>
-          <SideSheet
-            isShown={state.isShown}
-            onCloseComplete={() => setState({ isShown: false })}
-          >
-            <div style={{ width: "80%", margin: "0 auto" }}>
-              <h3
-                style={{
-                  fontSize: "40px",
-                  fontWeight: "400",
-                  color: "#09d3ac"
-                }}
-              >
-                Create new Category
-              </h3>
-              <Input
-                required
-                name="name"
-                value={state.newCategoryName}
-                onChange={e => setState({ newCategoryName: e.target.value })}
-                placeholder="Name of Category"
-                style={{ marginBottom: "20px" }}
-              />
-              <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                <Button
-                  onClick={() => setState({ isShown: false })}
-                  type="danger"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={async () => {
-                    await createRecord({ name: state.newCategoryName });
-                    setState({ isShown: false, newCategoryName: "" });
-                  }}
-                  style={{ marginLeft: "20px" }}
-                >
-                  Save
-                </Button>
-              </div>
-
-              <h4 style={{ marginTop: "70px", fontWeight: "normal" }}>
-                Import CSV for batch creation of categories
-              </h4>
-              <FilePicker
-                width={250}
-                marginBottom={32}
-                onChange={async files => {
-                  const [file] = files;
-                  if (!file) {
-                    toaster.danger("File was not imported correctly...");
-                  } else if (file.type !== "text/csv") {
-                    toaster.danger("File is not a csv");
-                  } else {
-                    Papa.parse(file, {
-                      header: true,
-                      dynamicTyping: true,
-                      complete: function(results) {
-                        const items = results.data;
-                        toaster.notify(
-                          "Importing records... please wait patiently"
-                        );
-                        items.forEach(item => {
-                          createRecord(item);
-                        });
-                      }
-                    });
-                  }
-                }}
-                placeholder="Select the csv file here!"
-              />
-            </div>
-          </SideSheet>
-					<Button
+					<Drawer
+						title="Update category"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
+					>
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+											rules: [{ required: true, message: 'Please enter name of category' }],
+										})(
+											<Input placeholder="Enter name of category" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+              <Row>
+								<FilePicker
+									width={250}
+									marginBottom={32}
+									onChange={async files => {
+										const [file] = files;
+										if (!file) {
+											message.error("File was not imported correctly...");
+										} else if (file.type !== "text/csv") {
+											message.error("File is not a csv");
+										} else {
+											Papa.parse(file, {
+												header: true,
+												dynamicTyping: true,
+												complete: function(results) {
+													const items = results.data;
+													message.info(
+														"Importing records... please wait patiently"
+													);
+													items.forEach(item => {
+														createRecord(item);
+													});
+												}
+											});
+										}
+									}}
+									placeholder="Select the csv file here!"
+								/>
+              </Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+								type='danger'
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									await createRecord({ name: getFieldValue('name') });
+									setState({ isShown: false })
+								}}
+								type="primary"
+							>
+								Save
+							</Button>
+						</div>
+					</Drawer>
+					<Avatar
+						className="create-avatar"
 						onClick={() => setState({ isShown: true })}
-						shape="circle"
-						icon="plus"
-						size='large'
-						style={{
-							float: 'right',
-							marginRight: '20px',
-							marginBottom: '20px',
-							backgroundColor: 'orange',
-							color: 'white',
-							width: '60px',
-							height: '60px'
-						}}
+						isSolid
+						name="+"
+						size={60}
 					/>
         </React.Fragment>
       )}
@@ -128,75 +122,85 @@ const CreateComponent = props => {
   );
 };
 
-const EditComponent = props => {
-  const { row, modelName, keyFieldName, updateRecord } = props;
-  return (
-    <Component
-      initialState={{ isShown: false, newCategoryName: row.name || "" }}
-    >
-      {({ state, setState }) => (
-        <React.Fragment>
-          <SideSheet
-            isShown={state.isShown}
-            onCloseComplete={() => setState({ isShown: false })}
-          >
-            <div style={{ width: "80%", margin: "0 auto" }}>
-              <h3
-                style={{
-                  fontSize: "40px",
-                  fontWeight: "400",
-                  color: "#09d3ac"
-                }}
-              >
-                Update {modelName}
-              </h3>
-              <Input
-                required
-                name="name"
-                value={state.newCategoryName}
-                onChange={e => setState({ newCategoryName: e.target.value })}
-                placeholder="Name of category"
-                style={{
-                  marginBottom: "20px",
-                  fontSize: "25px",
-                  height: "50px"
-                }}
-              />
-              <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                <Button
-                  onClick={() => setState({ isShown: false })}
-                  intent="danger"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    updateRecord({
-                      id: row[keyFieldName],
-                      name: state.newCategoryName
-                    });
-                    setState({ isShown: false });
-                  }}
-                  intent="success"
-                  style={{ marginLeft: "20px" }}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          </SideSheet>
-          <Icon
-            icon="edit"
-            onClick={() => setState({ isShown: true })}
-            className="hand-pointer"
-            size={20}
-            color="muted"
-          />
-        </React.Fragment>
-      )}
-    </Component>
-  );
+const CreateComponent = Form.create()(CreateComponentRaw);
+
+
+
+const EditComponentRaw = props => {
+	const { row, updateRecord } = props;
+	const { getFieldDecorator, getFieldValue } = props.form;
+
+	return (
+		<Component
+			initialState={{ isShown: false }}
+		>
+			{({ state, setState }) => (
+				<React.Fragment>
+					<Drawer
+						title="Update category"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
+					>
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+											initialValue: row.name,
+											rules: [{ required: true, message: 'Please enter name of category' }],
+										})(
+											<Input placeholder="Enter name of category" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+								type='danger'
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									await updateRecord({id: row.id, name: getFieldValue('name') });
+									setState({ isShown: false })
+								}}
+								type="primary"
+							>
+								Save
+							</Button>
+						</div>
+					</Drawer>
+					<Icon
+						type="edit"
+						onClick={() => setState({ isShown: true })}
+						className="hand-pointer"
+						size={20}
+						color="muted"
+					/>
+				</React.Fragment>
+			)}
+		</Component>
+	);
 };
+
+const EditComponent = Form.create()(EditComponentRaw);
+
 
 const Categories = props => {
   const {
@@ -219,7 +223,7 @@ const Categories = props => {
         .query(Q.where("name", categoryToCreate.name))
         .fetch();
       if (existingBrand[0]) {
-        toaster.warning(`Category ${categoryToCreate.name} already exists`);
+        message.warning(`Category ${categoryToCreate.name} already exists`);
         return;
       }
 
@@ -229,8 +233,7 @@ const Categories = props => {
         category.createdBy.set(user);
       });
 
-      console.log(`Created ${newCategory.name}`);
-      console.log(`Created by ${newCategory.createdBy}`);
+      message.success(`Created the category ${newCategory.name}`);
     });
   };
 
@@ -241,6 +244,7 @@ const Categories = props => {
         aCategory.name = updatedRecord.name;
         aCategory.createdBy.set(user);
       });
+      message.success(`Successfully updated the category ${updatedRecord.name}`);
     });
   };
 
@@ -279,7 +283,7 @@ const Categories = props => {
           </div>
           <div className="bottom-area">
             <a onClick={() => history.push("sales")}>
-              <Icon icon="arrow-left" />
+              <Icon type="arrow-left" />
               Jump to Sales
             </a>
           </div>

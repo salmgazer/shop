@@ -1,5 +1,4 @@
 import {synchronize} from "@nozbe/watermelondb/sync";
-import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 const apiUrl = 'http://shopghapi-env.uk8emku5hg.eu-central-1.elasticbeanstalk.com';
 

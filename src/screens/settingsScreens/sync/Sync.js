@@ -6,10 +6,10 @@ import { withRouter } from "react-router-dom";
 
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
-import { Icon } from "evergreen-ui";
 import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
 import SyncService from "../../../services/SyncService";
+import { notification, Icon, Spin, Result, Button } from 'antd';
 
 
 
@@ -20,17 +20,45 @@ class Sync extends React.Component{
   constructor(props) {
     super(props);
 
+    this.state = {
+    	showSpinner: false,
+			success: false
+		};
+
     this.sync = this.sync.bind(this);
   }
 
   async sync() {
-    alert("Wait for sync to complete");
+		this.setState({
+			showSpinner: true,
+			success: false
+		});
+		notification.open({
+			message: 'Syncing your data',
+			description:
+				'Please wait until sync completes.',
+			icon: <Icon type="info-circle" style={{ color: '#108ee9' }} />,
+			onClick: () => {
+				console.log('Notification Clicked!');
+			},
+		});
     const {database, company} = this.props;
 
     SyncService.sync(company, database, '')
       .then(() => {
-        console.log("Done syncing");
-        alert("Done syncing!");
+      	this.setState({
+					showSpinner: false,
+					success: true
+				});
+				notification.open({
+					message: 'Done syncing your data',
+					description:
+						'You can continue enjoying the app',
+					icon: <Icon type="smile" style={{ color: '#09d3ac' }} />,
+					onClick: () => {
+						console.log('Notification Clicked!');
+					},
+				});
       });
   }
 
@@ -44,6 +72,8 @@ class Sync extends React.Component{
 			DrawerIcon,
 			modelName
 		} = this.props;
+
+		const {showSpinner, success} = this.state;
 
 		return (
 			<div>
@@ -64,13 +94,32 @@ class Sync extends React.Component{
 						</div>
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>
-								<Icon icon="arrow-left" marginRight={16}/>
+								<Icon type="arrow-left"/>
 								Jump to Sales
 							</a>
 						</div>
 					</div>
 					<div id="main-body">
 						<h1 style={{ textAlgin: 'center'}}>Click "Sync" button below</h1>
+						<div>
+							{
+								showSpinner === true ? <Spin size='large' /> : ''
+							}
+							{
+								success === true && showSpinner === false ?
+									<Result
+										status="success"
+										title="Successfully Synced your data"
+										subTitle="You can jump back to your work!"
+										extra={[
+											<Button onClick={() => history.push("home")} type="primary" key="console">
+												Go to console
+											</Button>,
+											<Button key="sales" onClick={() => history.push("products")}>Go to inventory</Button>,
+										]}
+								/> : ''
+							}
+						</div>
 						<div id="bottom-area">
 							<button
 								className="sell-btn"

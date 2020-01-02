@@ -1,5 +1,5 @@
 #add-item {
-  margin: 10px auto 20px;
+  margin: 0px auto 20px;
   text-align: center;
   button {
     font-size: 30px;
@@ -11,9 +11,19 @@
   }
 }
 
+#sale-save {
+  margin: 10px auto 20px;
+  text-align: center;
+  button {
+    font-size: 30px;
+    height: 60px;
+    width: 90%;
+  }
+}
+
 #calculator-view {
   text-align: center;
-  width: 400px;
+  width: 30%;
   margin: 30px auto;
   box-shadow: 0 16px 32px 0 rgba(0, 0, 0, 0.2);
   padding: 50px;

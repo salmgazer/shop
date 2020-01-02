@@ -17,6 +17,8 @@ export default class Sale extends Model {
 	@field('discount') discount;
 	@relation('customers', 'customer_id') customer;
 	@field('company_id') companyId;
+	@field('customer_id') customerId;
+	@field('payment_status') paymentStatus; // part payment // full payment // unpaid
 	@relation('users', 'created_by') createdBy;
 	@readonly @date('created_at') createdAt;
 	@readonly @date('updated_at') updatedAt;

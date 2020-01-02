@@ -32,19 +32,17 @@
     transition: 0.4s;
     background-color: white;
     .bottom-area {
-      display: block;
       width: 100%;
       margin-top: 10px;
-      margin-bottom: 100px;
-      background-color: #2e8073 !important;
+      text-align: center;
       a {
-        float: left;
-        margin-left: 50px;
+        margin-left: auto;
+        margin-right: auto;
         text-decoration: none;
         color: #09d3ac;
         font-weight: bold;
         background-color: white;
-        padding: 5px 30px 5px 20px;
+        padding: 5px 20px 5px 20px;
         border: 1px solid white;
         border-radius: 10px;
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
@@ -109,7 +107,7 @@
       float: right;
       margin-right: 50px;
       #list-area {
-        height: 500px;
+        height: 600px;
         overflow: auto;
         .card-list-item {
           height: 80px;
@@ -163,6 +161,19 @@
         margin-top: 30px;
       }
     }
+  }
+}
+
+.create-avatar {
+  float: right;
+  margin-right: 20px;
+  margin-bottom: 60px !important;
+  cursor: pointer;
+  background-color: orange !important;
+  box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.2);
+  &:hover {
+    background-color: #09d3ac !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   }
 }
 

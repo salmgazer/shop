@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
-  Button,
   Dialog,
   Pane,
   SideSheet,
@@ -16,8 +15,8 @@ import "date-fns";
 import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from "@material-ui/core/Chip";
+import {Row, Col, Drawer, Icon, Button} from 'antd';
 
-import { Icon } from "antd";
 const CardListItem = props => {
   const {
     entry,
@@ -34,70 +33,74 @@ const CardListItem = props => {
     expenseCategories
   } = props;
 
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={2} style={{ width: "100px", marginTop: "7px" }}>
         <Component initialState={{ isShown: false }}>
           {({ state, setState }) => (
             <React.Fragment>
-              <SideSheet
-                isShown={state.isShown}
-                onCloseComplete={() => setState({ isShown: false })}
-              >
-                <div style={{ width: "80%", margin: "0 auto" }}>
-                  <h3
-                    style={{
-                      fontSize: "40px",
-                      fontWeight: "400",
-                      color: "#09d3ac"
-                    }}
+							<Drawer
+								title={`Details of ${modelName}`}
+								width={720}
+								onClose={() => setState({ isShown: false })}
+								visible={state.isShown}
+								bodyStyle={{ paddingBottom: 80 }}
+							>
+								{fieldNames.map(field => {
+									let value = entry[field.name];
+									if (typeof value === "object") {
+										if (value instanceof Date) {
+											value = value.toLocaleString().split(",")[0];
+										} else if (field.name === "createdBy") {
+											value = createdBy ? createdBy.name : "";
+										}
+									}
+									return (
+										<Row gutter={16} key={field.name}>
+											<Col span={12}>
+												<h5
+													style={{ fontSize: "20px", fontWeight: "lighter" }}
+													key={field.name}
+												>
+													<b style={{ fontWeight: "400" }}>
+														{capitalize(field.label)}
+													</b>
+													: {<Chip label={value} variant="outlined" /> || ""}
+												</h5>
+                      </Col>
+										</Row>
+                  );
+								})}
+								<div
+									style={{
+										position: 'absolute',
+										right: 0,
+										bottom: 0,
+										width: '100%',
+										borderTop: '1px solid #e9e9e9',
+										padding: '10px 16px',
+										background: '#fff',
+										textAlign: 'right',
+									}}
+								>
+									<EditComponent
+										row={entry}
+										modelName={modelName}
+										updateRecord={updateRecord}
+										displayName={displayName}
+										keyFieldName={keyFieldName}
+										expenseCategories={expenseCategories}
+									/>
+									<Button
+                    type='danger'
+                    onClick={() => setState({ isShown: false })}
+                    style={{ marginLeft: 20 }}
                   >
-                    Details of {displayName || modelName}
-                  </h3>
-                  {fieldNames.map(field => {
-                    let value = entry[field.name];
-                    if (typeof value === "object") {
-                      if (value instanceof Date) {
-                        value = value.toLocaleString().split(",")[0];
-                      } else if (field.name === "createdBy") {
-                        value = createdBy ? createdBy.name : "";
-                      }
-                    }
-                    return (
-                      <h5
-                        style={{ fontSize: "20px", fontWeight: "lighter" }}
-                        key={field.name}
-                      >
-                        <b style={{ fontWeight: "400" }}>
-                          {capitalize(field.label)}
-                        </b>
-                        : {<Chip label={value} variant="outlined" /> || ""}
-                      </h5>
-                    );
-                  })}
-
-                  <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                    <Button>
-                      Edit
-                      <EditComponent
-                        displayName={displayName}
-                        row={entry}
-                        modelName={modelName}
-                        updateRecord={updateRecord}
-                        keyFieldName={keyFieldName}
-                        expenseCategories={expenseCategories}
-                      />
-                    </Button>
-                    <Button
-                      style={{ marginLeft: "20px" }}
-                      onClick={() => setState({ isShown: false })}
-                      intent="danger"
-                    >
-                      Close
-                    </Button>
-                  </div>
-                </div>
-              </SideSheet>
+										Close
+									</Button>
+								</div>
+							</Drawer>
               <Button
                 icon="eye-open"
                 onClick={() => setState({ isShown: true })}

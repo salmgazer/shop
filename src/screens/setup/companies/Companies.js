@@ -24,8 +24,10 @@ import {Button, Icon} from 'antd';
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
-  { name: "owner", label: "Owner", type: "string" },
+  { name: "code", label: "Code", type: "string "},
   { name: "description", label: "Description", type: "string" },
+  { name: "locationName", label: "Location", type: "string" },
+  { name: "category", label: "Category", type: "string" },
   { name: "createdAt", label: "Created", type: "string" },
   { name: "updatedAt", label: "Updated", type: "string" }
 ];

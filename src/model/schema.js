@@ -12,9 +12,10 @@ import productPricesSchema from "./productPrices/productPriceSchema";
 import expenseCategorySchema from "./expenseCategories/expenseCategorySchema";
 import expenseSchema from "./expenses/expenseSchema";
 import settingsSchema from "./settings/settingSchema";
+import installmentSchema from "./installments/installmentSchema";
 
 export default appSchema({
-  version: 1,
+  version: 2,
   tables: [
     tableSchema(companySchema),
     tableSchema(userSchema),
@@ -28,6 +29,7 @@ export default appSchema({
     tableSchema(productPricesSchema),
     tableSchema(expenseCategorySchema),
     tableSchema(expenseSchema),
-    tableSchema(settingsSchema)
+    tableSchema(settingsSchema),
+    tableSchema(installmentSchema)
   ]
 });

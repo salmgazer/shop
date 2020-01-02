@@ -7,20 +7,14 @@ import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
-import {
-  SideSheet,
-  FilePicker,
-  toaster
-  // eslint-disable-next-line import/no-unresolved
-} from "evergreen-ui";
-import {Icon, Button, Input} from 'antd';
+import {Icon, Button, Input, Form, Row, Col, Drawer, message} from 'antd';
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import Brand from "../../../model/brand/Brand";
 import TopNav from "../../../components/TopNav";
+import {Avatar, FilePicker} from "evergreen-ui";
 
-const { TextArea } = Input;
 
 const fieldNames = [
   { name: "name", label: "Name", type: "string" },
@@ -30,115 +24,112 @@ const fieldNames = [
   { name: "updatedAt", label: "Updated", type: "string" }
 ];
 
-const CreateComponent = props => {
+const CreateComponentRaw = props => {
   const { createRecord } = props;
+	const { getFieldDecorator, getFieldValue } = props.form;
   return (
     <Component
-      initialState={{ isShown: false, newBrandName: "", newBrandNotes: "" }}
+      initialState={{ isShown: false }}
     >
       {({ state, setState }) => (
         <React.Fragment>
-          <SideSheet
-            isShown={state.isShown}
-            onCloseComplete={() => setState({ isShown: false })}
-          >
-            <div style={{ width: "80%", margin: "0 auto" }}>
-              <h3
-                style={{
-                  fontSize: "40px",
-                  color: "#09d3ac",
-                  fontWeight: '300'
-                }}
-              >
-                Create new Brand
-              </h3>
-							<Input
-								required
-								name="name"
-								value={state.newBrandName}
-								onChange={e => setState({ newBrandName: e.target.value })}
-								placeholder="Name of brand"
-								style={{ marginBottom: "20px" }}
-              />
-							<TextArea
-                rows={4}
-								name="notes"
-								value={state.newBrandNotes}
-								onChange={e => setState({ newBrandNotes: e.target.value })}
-								placeholder="Note about brand"
-              />
-              <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                <Button
-                  onClick={() => setState({ isShown: false })}
-                  intent="danger"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={async () => {
-                    await createRecord({
-                      name: state.newBrandName,
-                      notes: state.newBrandNotes
-                    });
-                    setState({
-                      isShown: false,
-                      newBrandName: "",
-                      newBrandNotes: ""
-                    });
-                  }}
-                  intent="success"
-                  style={{ marginLeft: "20px" }}
-                >
-                  Save
-                </Button>
-              </div>
-
-              <h4 style={{ marginTop: "70px", fontWeight: "normal" }}>
-                Import CSV for batch creation of brands
-              </h4>
-              <FilePicker
-                width={250}
-                marginBottom={32}
-                onChange={async files => {
-                  const [file] = files;
-                  if (!file) {
-                    toaster.danger("File was not imported correctly...");
-                  } else if (file.type !== "text/csv") {
-                    toaster.danger("File is not a csv");
-                  } else {
-                    Papa.parse(file, {
-                      header: true,
-                      dynamicTyping: true,
-                      complete: function(results) {
-                        const items = results.data;
-                        toaster.notify(
-                          "Importing records... please wait patiently"
-                        );
-                        items.forEach(item => {
-                          createRecord(item);
-                        });
-                      }
-                    });
-                  }
-                }}
-                placeholder="Select the csv file here!"
-              />
-            </div>
-          </SideSheet>
-					<Button
+					<Drawer
+						title="Create brand"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
+					>
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+											rules: [{ required: true, message: 'Please enter name of brand' }],
+										})(
+											<Input placeholder="Enter name of brand" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={24}>
+									<Form.Item label="Note">
+										{getFieldDecorator('notes', {
+											rules: [
+												{
+													required: false,
+												},
+											],
+										})(<Input.TextArea rows={4} placeholder="Please enter notes about brand" />)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row>
+								<FilePicker
+									width={250}
+									marginBottom={32}
+									onChange={async files => {
+										const [file] = files;
+										if (!file) {
+											message.error("File was not imported correctly...");
+										} else if (file.type !== "text/csv") {
+											message.error("File is not a csv");
+										} else {
+											Papa.parse(file, {
+												header: true,
+												dynamicTyping: true,
+												complete: function(results) {
+													const items = results.data;
+													message.info(
+														"Importing records... please wait patiently"
+													);
+													items.forEach(item => {
+														createRecord(item);
+													});
+												}
+											});
+										}
+									}}
+									placeholder="Select the csv file here!"
+								/>
+							</Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+								type='danger'
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									await createRecord({name: getFieldValue('name'), notes: getFieldValue('notes') });
+									setState({ isShown: false })
+								}}
+								type="primary"
+							>
+								Save
+							</Button>
+						</div>
+					</Drawer>
+					<Avatar
+						className="create-avatar"
 						onClick={() => setState({ isShown: true })}
-						shape="circle"
-						icon="plus"
-						size='large'
-						style={{
-							float: 'right',
-							marginRight: '20px',
-							marginBottom: '20px',
-							backgroundColor: 'orange',
-							color: 'white',
-							width: '60px',
-							height: '60px'
-						}}
+						isSolid
+						name="+"
+						size={60}
 					/>
         </React.Fragment>
       )}
@@ -146,88 +137,99 @@ const CreateComponent = props => {
   );
 };
 
-const EditComponent = props => {
-  const { row, modelName, keyFieldName, updateRecord } = props;
+const CreateComponent = Form.create()(CreateComponentRaw);
+
+
+const EditComponentRaw = props => {
+  const { row, updateRecord } = props;
+	const { getFieldDecorator, getFieldValue } = props.form;
+
   return (
     <Component
-      initialState={{
-        isShown: false,
-        newBrandName: row.name || "",
-        newBrandNotes: row.notes || ""
-      }}
+      initialState={{ isShown: false }}
     >
       {({ state, setState }) => (
         <React.Fragment>
-          <SideSheet
-            isShown={state.isShown}
-            onCloseComplete={() => setState({ isShown: false })}
-          >
-            <div style={{ width: "80%", margin: "0 auto" }}>
-              <h3
-                style={{
-                  fontSize: "40px",
-                  fontWeight: "400",
-                  color: "#09d3ac"
-                }}
+					<Drawer
+						title="Update brand"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
+					>
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+										  initialValue: row.name,
+											rules: [{ required: true, message: 'Please enter name of brand' }],
+										})(
+										  <Input placeholder="Enter name of brand" />
+                    )}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={24}>
+									<Form.Item label="Note">
+										{getFieldDecorator('notes', {
+										  initialValue: row.notes,
+											rules: [
+												{
+													required: false,
+												},
+											],
+										})(<Input.TextArea rows={4} placeholder="Please enter notes about brand" />)}
+									</Form.Item>
+								</Col>
+							</Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+                onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+                type='danger'
               >
-                Update {modelName}
-              </h3>
-              <Input
-                required
-                name="name"
-                value={state.newBrandName}
-                onChange={e => setState({ newBrandName: e.target.value })}
-                placeholder="Name of brand"
-                style={{
-                  marginBottom: "20px",
-                  fontSize: "25px",
-                  height: "50px"
-                }}
-              />
-              <TextArea
-                name="notes"
-                value={state.newBrandNotes}
-                onChange={e => setState({ newBrandNotes: e.target.value })}
-                placeholder="Note about brand"
-                style={{ marginBottom: "20px", fontSize: "25px" }}
-              />
-              <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                <Button
-                  onClick={() => setState({ isShown: false })}
-                  intent="danger"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    updateRecord({
-                      id: row[keyFieldName],
-                      name: state.newBrandName,
-                      notes: state.newBrandNotes
-                    });
-                    setState({ isShown: false });
-                  }}
-                  intent="success"
-                  style={{ marginLeft: "20px" }}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          </SideSheet>
+								Cancel
+							</Button>
+							<Button
+                onClick={async () => {
+                  await updateRecord({id: row.id, name: getFieldValue('name'), notes: getFieldValue('notes') });
+                  setState({ isShown: false })
+								}}
+                type="primary"
+              >
+								Save
+							</Button>
+						</div>
+					</Drawer>
           <Icon
-            icon="edit"
+            type="edit"
             onClick={() => setState({ isShown: true })}
             className="hand-pointer"
             size={20}
             color="muted"
-            marginRight={20}
           />
         </React.Fragment>
       )}
     </Component>
   );
 };
+
+const EditComponent = Form.create()(EditComponentRaw);
+
+
 
 const Brands = props => {
   const {
@@ -250,7 +252,7 @@ const Brands = props => {
         .query(Q.where("name", brandToCreate.name))
         .fetch();
       if (existingBrand[0]) {
-        toaster.warning(`Brand ${brandToCreate.name} already exists`);
+				message.warning(`The brand ${brandToCreate.name} already exists`);
         return;
       }
       const newBrand = await brandsCollection.create(brand => {
@@ -260,19 +262,20 @@ const Brands = props => {
         brand.createdBy.set(user);
       });
 
-      console.log(`Created ${newBrand.name}`);
-      console.log(`Created by ${newBrand.createdBy}`);
+      message.success(`Successfully created the brand ${newBrand.name}`);
     });
   };
 
   const updateRecord = async updatedRecord => {
+    console.log(updatedRecord);
     await database.action(async () => {
       const brand = await brandsCollection.find(updatedRecord.id);
       await brand.update(aBrand => {
         aBrand.name = updatedRecord.name;
         aBrand.notes = updatedRecord.notes;
       });
-      // search({ key: 'name', value: ''});
+
+			message.success(`Successfully updated the brand ${updatedRecord.name}`);
     });
   };
 
@@ -312,9 +315,9 @@ const Brands = props => {
               Brands
             </button>
           </div>
-          <div className="bottom-area">
+          <div className="bottom-area" style={{margin: 'O auto'}}>
             <a onClick={() => history.push("sales")}>
-              <Icon icon="arrow-left" marginRight={16} />
+              <Icon type="arrow-left"/>
               Jump to Sales
             </a>
           </div>

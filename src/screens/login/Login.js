@@ -7,6 +7,7 @@ import { useDatabase } from '@nozbe/watermelondb/hooks';
 import { Q } from '@nozbe/watermelondb';
 import MyLocal from '../../services/MyLocal';
 import SyncService from "../../services/SyncService";
+import {Icon, notification} from "antd";
 
 
 const apiUrl = 'http://shopghapi-env.uk8emku5hg.eu-central-1.elasticbeanstalk.com';
@@ -110,6 +111,15 @@ const Login = (props) => {
 							history.push('/');
 							// window.location.reload();
 							//code before the pause
+							notification.open({
+								message: 'Wait to be redirected to homepage',
+								description:
+									'Please wait be patient as you are redirected',
+								icon: <Icon type="info-circle" style={{ color: '#108ee9' }} />,
+								onClick: () => {
+									console.log('Notification Clicked!');
+								},
+							});
 							setTimeout(function(){
 								window.location.reload();
 							}, 2000);

@@ -7,217 +7,244 @@ import Component from "@reactions/component";
 import { Q } from '@nozbe/watermelondb';
 import PropTypes from 'prop-types';
 import pluralize from 'pluralize';
-import Chip from '@material-ui/core/Chip';
 import {
-	SideSheet,
-	TextInput,
-	Textarea,
-	Pane,
-	Dialog,
 	FilePicker,
-	SearchInput,
-	toaster,
-	SelectMenu,
 	Avatar,
-	Button,
-	Icon,
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
+import {Icon, Form, message,Select, Row, Col, Input, Drawer, InputNumber, Modal, Button} from 'antd';
 import ProductCardList from "../../../components/ProductCardList";
 import MyLocal from "../../../services/MyLocal";
 import Product from "../../../model/products/Product";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
-import Grid from "@material-ui/core/Grid/Grid";
 import Brand from "../../../model/brand/Brand";
 import Category from "../../../model/categories/Category";
 import Papa from "papaparse";
 import capitalize from 'capitalize';
 import TopNav from "../../../components/TopNav";
 
+const { Option } = Select;
+const {Search} = Input;
+
 const fieldNames = [
 	{ name: 'name', label: 'Name', type: 'string' },
-	{ name: 'quantity', label: 'Quantity', type: 'number' },
 	{ name: 'sellingPrice', label: 'Selling price', type: 'number' },
 	{ name: 'brand', label: 'Brand', type: 'string' },
 	{ name: 'category', label: 'Category', type: 'string' },
 ];
 
-const CreateComponent = (props) => {
+const CreateComponentRaw = (props) => {
 	const {createRecord, categories, brands} = props;
+	const {getFieldDecorator, getFieldValue} = props.form;
 
 	return (
 		<Component
-			initialState={{ isShown: false, pricesIsShown: false, newProductName: '', newDescription: '', newQuantity: 0, newCostPrice: 0, newSellingPrice: 0, selectedCategoryId: '', selectedBrandId: ''}}
+			initialState={{ isShown: false, pricesIsShown: false }}
 		>
 			{({ state, setState }) => (
 				<React.Fragment>
-					<SideSheet
-						isShown={state.isShown}
-						onCloseComplete={() => setState({ isShown: false })}
+					<Drawer
+						title="Create product"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
 					>
-						<div style={{ width: '80%', margin: '0 auto'}}>
-							<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Create new Product</h3>
-							<label>Name of product: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="name"
-								value={state.newProductName}
-								onChange={(e) => setState({newProductName: e.target.value})}
-								placeholder="Name of Product"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Description: </label>
-							<Textarea
-								name="newDescription"
-								placeholder="Description of product"
-								value={state.newDescription}
-								onChange={(e) => setState({newDescription: e.target.value})}
-								style={{marginBottom: '20px', float: 'right'}}
-							/>
-							<br/><br/>
-							<label>Quantity : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="newQuantity"
-								value={state.newQuantity}
-								onChange={(e) => setState({newQuantity: parseInt(e.target.value, 10) || 0})}
-								placeholder="Quantity"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Cost Price (GH₵):  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="newCostPrice"
-								value={state.newCostPrice}
-								onChange={(e) => setState({newCostPrice: parseInt(e.target.value, 10) || 0})}
-								placeholder="Cost Price"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Selling Price (GH₵): &nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="newSellingPrice"
-								value={state.newSellingPrice}
-								onChange={(e) => {
-									setState({newSellingPrice: parseInt(e.target.value, 10) || 0});
-								}}
-								placeholder="Selling Price"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/>
-							<br/><label>Select Brand: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<SelectMenu
-								filterPlaceholder='Select category'
-								title="Select category"
-								options={
-									categories.map(category => ({ label: category.name, value: category.id }))
-								}
-								selected={state.selectedCategoryId}
-								onSelect={item => setState({ selectedCategoryId: item.value })}
-								style={{marginBottom: '20px'}}
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+											rules: [{ required: true, message: 'Please enter name of product' }],
+										})(
+											<Input placeholder="Enter name of product" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={24}>
+									<Form.Item label="Description">
+										{getFieldDecorator('description', {
+											rules: [
+												{
+													required: false,
+												},
+											],
+										})(<Input.TextArea rows={4} placeholder="Please enter product description" />)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={10}>
+									<Form.Item label="Cost Price (GHS)">
+										{getFieldDecorator('costPrice', {
+											rules: [{ required: true, message: 'Please enter cost price' }],
+										})(
+											<InputNumber style={{ width: 200 }} placeholder="Enter cost price" />
+										)}
+									</Form.Item>
+								</Col>
+								<Col span={10}>
+									<Form.Item label="Selling Price (GHS)">
+										{getFieldDecorator('sellingPrice', {
+											rules: [{ required: true, message: 'Please enter selling price' }],
+										})(
+											<InputNumber style={{ width: 200 }} placeholder="Enter selling price" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={10}>
+									<Form.Item label="Category">
+										{getFieldDecorator('category', {
+											rules: [{ required: false, message: 'Please select category' }],
+										})(
+											<Select
+												showSearch
+												style={{ width: 200 }}
+												placeholder="Select category"
+												optionFilterProp="children"
+												filterOption={(input, option) =>
+													option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+												}
+											>
+												{
+													categories.map(category => <Option key={category.id} value={category.id}>{category.name}</Option>)
+												}
+											</Select>
+										)}
+									</Form.Item>
+								</Col>
+								<Col span={10}>
+									<Form.Item label="Brand">
+										{getFieldDecorator('brand', {
+											rules: [{ required: false, message: 'Please select category' }],
+										})(
+											<Select
+												showSearch
+												style={{ width: 200 }}
+												placeholder="Select brand"
+												optionFilterProp="children"
+												filterOption={(input, option) =>
+													option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+												}
+											>
+												{
+													brands.map(brand => <Option key={brand.id} value={brand.id}>{brand.name}</Option>)
+												}
+											</Select>
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row>
+								<h4 style={{marginTop: '10px', fontWeight: 'normal'}}>Import CSV for batch creation of products</h4>
+								<FilePicker
+									width={250}
+									marginBottom={32}
+									onChange={async files => {
+										const [file] = files;
+										if (!file) {
+											message.error("File was not imported correctly...");
+										} else if (file.type !== "text/csv") {
+											message.error("File is not a csv");
+										} else {
+											Papa.parse(file, {
+												header: true,
+												dynamicTyping: true,
+												complete: function(results) {
+													const items = results.data;
+													message.info(
+														"Importing records... please wait patiently"
+													);
+													items.forEach(item => {
+														createRecord(item, {brand: item.brand, category: item.category});
+													});
+												}
+											});
+										}
+									}}
+									placeholder="Select the csv file here!"
+								/>
+							</Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+								type='danger'
 							>
-								<Button>{state.selectedCategoryId ? categories.find(cat => cat.id === state.selectedCategoryId).name : 'Select category...'}</Button>
-							</SelectMenu>
-							<br /><br />
-							<label>Select category: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								&nbsp;&nbsp;</label>
-							<SelectMenu
-								filterPlaceholder='Select brand'
-								title="Select brand"
-								options={
-									brands.map(brand => ({ label: brand.name, value: brand.id }))
-								}
-								selected={state.selectedBrandId}
-								onSelect={item => setState({ selectedBrandId: item.value })}
-								style={{marginBottom: '20px'}}
-							>
-								<Button>{state.selectedBrandId ? brands.find(brand => brand.id === state.selectedBrandId).name : 'Select brand...'}</Button>
-							</SelectMenu><br/>
-							<div style={{ margin: '0 auto', marginTop: '20px'}}>
-								<Button onClick={() => setState({ isShown: false })} intent='danger'>Cancel</Button>
-								<Button onClick={async () => {
-									if (!state.newProductName) {
-										toaster.danger('Product must have a name');
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									if (!getFieldValue('name')) {
+										message.error('Product must have a name');
 										return;
 									}
-									if (state.newCostPrice === 0 || state.newSellingPrice === 0) {
-										toaster.danger('Cost price and Selling price cannot be zero (0)');
+									if (getFieldValue('costPrice') === 0 || getFieldValue('sellingPrice') === 0) {
+										message.error('Cost price and Selling price cannot be zero (0)');
 										return;
 									}
-									if (state.newSellingPrice < state.newCostPrice) {
-										toaster.danger('Selling price cannot be smaller than cost price. You will make a loss');
+									if (getFieldValue('sellingPrice') < getFieldValue('costPrice')) {
+										message.error('Selling price cannot be smaller than cost price. You will make a loss');
 										return;
 									}
 									if (state.newSellingPrice === state.newCostPrice) {
-										toaster.warning('Selling price must be greater than cost price in order to make profit');
+										message.error('Selling price must be greater than cost price in order to make profit');
 									}
+
 									await createRecord({
-										name: state.newProductName,
-										description: state.newDescription,
-										quantity: state.newQuantity,
-										costPrice: state.newCostPrice,
-										sellingPrice: state.newSellingPrice,
-										categoryId: state.selectedCategoryId,
-										brandId: state.selectedBrandId
+										name: getFieldValue('name'),
+										description: getFieldValue('description'),
+										quantity: getFieldValue('quantity'),
+										costPrice: getFieldValue('costPrice'),
+										sellingPrice: getFieldValue('sellingPrice'),
+										categoryId: getFieldValue('category'),
+										brandId: getFieldValue('brand')
 									});
-									setState({ isShown: false, newProductName: '' })
-								}} intent='success' style={{marginLeft: '20px'}}>Save</Button>
-							</div>
-							<h4 style={{marginTop: '70px', fontWeight: 'normal'}}>Import CSV for batch creation of products</h4>
-							<FilePicker
-								width={250}
-								marginBottom={100}
-								onChange={async files => {
-									const [file] = files;
-									if (!file) {
-										toaster.danger(
-											'File was not imported correctly...'
-										);
-									} else if (file.type !== 'text/csv') {
-										toaster.danger(
-											'File is not a csv'
-										);
-									} else {
-										Papa.parse(file, {
-											header: true,
-											dynamicTyping: true,
-											complete: function(results) {
-												const items = results.data;
-												toaster.notify(
-													'Importing records... please wait patiently'
-												);
-												items.forEach( item => {
-													createRecord(item, {brand: item.brand, category: item.category});
-												});
-											}
-										});
-									}
+
+									setState({ isShown: false })
 								}}
-								placeholder="Select the csv file here!"
-							/>
+								type="primary"
+							>
+								Save
+							</Button>
 						</div>
-					</SideSheet>
+					</Drawer>
 					<Avatar
-						style={{
-							backgroundColor: 'orange',
-							float: 'right',
-							marginRight: '20px',
-							marginBottom: '20px',
-							cursor: 'pointer'
-						}}
-						onClick={() => setState({ isShown: true })} isSolid name="+" size={60} />
+						className="create-avatar"
+						onClick={() => setState({ isShown: true })}
+						isSolid
+						name="+"
+						size={60}
+					/>
 				</React.Fragment>
 			)}
 		</Component>
 	);
 };
 
-const EditComponent = (props) => {
+const CreateComponent = Form.create()(CreateComponentRaw);
+
+
+
+const EditComponentRaw = (props) => {
 	const {row, modelName, removeProductPrice, brands, totalQuantity, productPrices, categories, keyFieldName, updateRecord, saveProductPrice} = props;
 	let count = 0;
+	const {getFieldDecorator, getFieldValue} = props.form;
 	return (
 		<Component initialState={{
 			isShown: false,
@@ -230,216 +257,286 @@ const EditComponent = (props) => {
 		}}>
 			{({ state, setState }) => (
 				<React.Fragment>
-					<SideSheet
-						isShown={state.isShown}
-						onCloseComplete={() => setState({ isShown: false })}
+					<Drawer
+						title="Update Product"
+						width={720}
+						onClose={() => setState({ isShown: false })}
+						visible={state.isShown}
+						bodyStyle={{ paddingBottom: 80 }}
 					>
-						<div style={{ width: '80%', margin: '0 auto'}}>
-							<h3 style={{fontSize: '40px', fontWeight: '400', color: '#09d3ac'}}>Update {modelName}</h3>
-							<TextInput
-								required
-								name="name"
-								value={state.newProductName}
-								onChange={(e) => setState({newProductName: e.target.value})}
-								placeholder="Name of Product"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Description: </label>
-							<Textarea
-								name="newDescription"
-								placeholder="Description of product"
-								value={state.newDescription}
-								onChange={(e) => setState({newDescription: e.target.value})}
-								style={{marginBottom: '20px', float: 'right'}}
-							/>
-							<br/><br/>
-							<label>Quantity: &nbsp;&nbsp;&nbsp;<Chip variant='outlined' label={totalQuantity} /></label><br/>
-							<br/><label>Selling Price (GH₵): &nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<TextInput
-								required
-								name="newSellingPrice"
-								value={state.newSellingPrice}
-								onChange={(e) => {
-									setState({newSellingPrice: parseInt(e.target.value, 10) || 0});
-								}}
-								placeholder="Selling Price"
-								style={{marginBottom: '20px'}}
-							/>
-							<br/><label>Select category: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<SelectMenu
-								filterPlaceholder='Select category'
-								title="Select category"
-								options={
-									categories.map(category => ({ label: category.name, value: category.id }))
-								}
-								selected={state.newCategoryId}
-								onSelect={item => setState({ newCategoryId: item.value })}
-								style={{marginBottom: '20px'}}
-							>
-								<Button>{state.newCategoryId ? categories.find(cat => cat.id === state.newCategoryId).name : 'Select category...'}</Button>
-							</SelectMenu>
-							<br /><br />
-							<label>Select brand: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-							<SelectMenu
-								filterPlaceholder='Select brand'
-								title="Select brand"
-								options={
-									brands.map(brand => ({ label: brand.name, value: brand.id }))
-								}
-								selected={state.newBrandId}
-								onSelect={item => setState({ newBrandId: item.value })}
-								style={{marginBottom: '20px'}}
-							>
-								<Button>{state.newBrandId ? brands.find(brand => brand.id === state.newBrandId).name : 'Select brand...'}</Button>
-							</SelectMenu><br/><br/>
-
-							<Pane>
-								<Dialog
-									isShown={state.viewPrices}
-									title={`Cost Prices for ${state.newProductName}`}
-									onCloseComplete={() => setState({ viewPrices: false, stateProductPrices: productPrices })}
-									hasFooter={false}
-								>
-									<div style={{marginBottom: '20px'}}>
-										<SearchInput
-											onChange={e => {
-												if (e.target.value) {
-													setState({stateProductPrices: productPrices.filter(pp => pp.price === parseInt(e.target.value, 10))});
-												} else {
-													setState({stateProductPrices: productPrices});
+						<Form layout="vertical">
+							<Row gutter={16}>
+								<Col span={12}>
+									<Form.Item label="Name">
+										{getFieldDecorator('name', {
+											initialValue: row.name,
+											rules: [{ required: true, message: 'Please enter name of product' }],
+										})(
+											<Input placeholder="Enter name of product" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={18}>
+									<Form.Item label="Description">
+										{getFieldDecorator('description', {
+											initialValue: row.description,
+											rules: [{ required: false, message: 'Please enter description of product' }],
+										})(
+											<Input.TextArea placeholder="Enter description of product" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={6}>
+									<Form.Item label="Quantity">
+										<InputNumber disabled defaultValue={totalQuantity} />
+									</Form.Item>
+								</Col>
+								<Col span={12}>
+									<Form.Item label="Selling Price (GHS)">
+										{getFieldDecorator('sellingPrice', {
+											initialValue: row.sellingPrice,
+											rules: [{ required: true, message: 'Please enter selling price' }],
+										})(
+											<InputNumber placeholder="Enter selling price" />
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={10}>
+									<Form.Item label="Category">
+										{getFieldDecorator('category', {
+											initialValue: row.categoryId,
+											rules: [{ required: false, message: 'Please select category' }],
+										})(
+											<Select
+												showSearch
+												style={{ width: 200 }}
+												placeholder="Select category"
+												optionFilterProp="children"
+												filterOption={(input, option) =>
+													option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
 												}
-											}}
-											placeholder="Search Cost Price"
-										/>
-										<Button
-											onClick={() => {
-												count += 1;
-												setState({ stateProductPrices : state.stateProductPrices.concat([{ price: 0, quantity: 0, tempId: count, createdAt: new Date()}])})
-											}}
-											style={{float: 'right'}} appearance="primary" intent="success" iconBefore="add">
-											Add cost price
-										</Button>
-									</div>
-									{
-										state.stateProductPrices.filter(pp => !pp.deleted)
-											.sort((a, b) => b.createdAt - a.createdAt).map(productPrice =>
-											<Component
-												key={productPrice.id || productPrice.tempId}
-												initialState={{ price: productPrice.price, quantity: productPrice.quantity, id: productPrice.id, deleted: false, showDeleteDialog: false }}
 											>
-												{({ state, setState }) => (
-													<div style={{
-														marginBottom: '20px',
-														backgroundColor: productPrice.id ? 'none' : '#D4EEE2',
-													}}>
-														{state.deleted === false ?
-															<Grid key={productPrice.id || count} container spacing={1} className="product_price_item">
-																<Grid item>
-																	Price: &nbsp;&nbsp;
-																	<TextInput
-																		required
-																		name="price"
-																		width={70}
-																		disabled={!!productPrice.id}
-																		value={state.price}
-																		onChange={(e) => {
-																			setState({price: parseInt(e.target.value, 10) || productPrice.price});
-																		}}
-																		placeholder="Price"
-																	/>
-																</Grid>
-																<Grid item style={{marginLeft: '40px', marginRight: '20px'}}>
-																	Quantity: &nbsp;&nbsp;
-																	<TextInput
-																		required
-																		width={70}
-																		name="quantity"
-																		value={state.quantity}
-																		onChange={(e) => {
-																			setState({quantity: parseInt(e.target.value, 10) || productPrice.quantity});
-																		}}
-																		placeholder="Quantity"
-																	/>
-																</Grid>
-																<Grid xs={3} item container style={{marginLeft: '20px'}}>
-																	<Grid item>
-																		<Button
-																			intent="success" style={{marginRight: '5px'}}
-																			onClick={() => {
-																				saveProductPrice({
-																					price: state.price,
-																					quantity: state.quantity,
-																					id: state.id
-																				}, row);
-																				setState({ price: state.price, quantity: state.quantity });
-																			}}>Save</Button>
-																	</Grid>
-																	<Grid item>
-																		<Pane>
-																			<Dialog
-																				isShown={state.showDeleteDialog}
-																				title="Delete cost price"
-																				intent="danger"
-																				onCloseComplete={() => setState({ showDeleteDialog: false })}
-																				confirmLabel="Delete"
-																				onConfirm={() => {
-																					if (productPrice.id) {
-																						removeProductPrice(productPrice);
-																					}
-																					setState({ deleted: true, showDeleteDialog: false });
-																				}}
-																			>
-																				Are you sure you want to remove the cost price ({state.price}) and its items ({state.quantity}) ?
-																			</Dialog>
-																			<Button intent="danger" onClick={() => setState({ showDeleteDialog: true })}>-</Button>
-																		</Pane>
-																	</Grid>
-																</Grid>
-															</Grid> : ''
-														}</div>
-												)}
-											</Component>
-										)
-									}
-									<div style={{marginTop: '30px'}}>
-										<Button
-											onClick={() => setState({ viewPrices: false, stateProductPrices: productPrices })}
-											appearance="primary"
-											intent="danger"
-											style={{marginRight: '20px'}}
-										>
-											Cancel
-										</Button>
-									</div>
-								</Dialog>
-								<Button onClick={() => setState({ viewPrices: true })}>View Cost Prices of Product</Button>
-							</Pane>
-
-							<div style={{ margin: '0 auto', marginTop: '20px'}}>
-								<Button onClick={() => setState({ isShown: false })} intent='danger'>Cancel</Button>
-								<Button onClick={() => {
-									updateRecord({
-										id: row[keyFieldName],
-										name: state.newProductName,
-										description: state.newDescription,
-										quantity: state.newQuantity,
-										costPrice: state.newCostPrice,
-										sellingPrice: state.newSellingPrice,
-										categoryId: state.newCategoryId,
-										brandId: state.newBrandId
+												{
+													categories.map(category => <Option key={category.id} value={category.id}>{category.name}</Option>)
+												}
+											</Select>
+										)}
+									</Form.Item>
+								</Col>
+								<Col span={10}>
+									<Form.Item label="Brand">
+										{getFieldDecorator('brand', {
+											initialValue: row.brandId,
+											rules: [{ required: false, message: 'Please select category' }],
+										})(
+											<Select
+												showSearch
+												style={{ width: 200 }}
+												placeholder="Select brand"
+												optionFilterProp="children"
+												filterOption={(input, option) =>
+													option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+												}
+											>
+												{
+													brands.map(brand => <Option key={brand.id} value={brand.id}>{brand.name}</Option>)
+												}
+											</Select>
+										)}
+									</Form.Item>
+								</Col>
+							</Row>
+							<Row gutter={16}>
+								<Col span={12}>
+									<Modal
+										title={`Cost Prices for ${state.newProductName}`}
+										visible={state.viewPrices}
+										onOk={() => setState({ viewPrices: false })}
+										onCancel={() => setState({ viewPrices: false })}
+										footer={null}
+									>
+										<div style={{marginBottom: '20px'}}>
+											<Search
+												placeholder="Search cost prices"
+												onChange= {e => {
+													if (e.target.value) {
+														setState({stateProductPrices: productPrices.filter(pp => pp.price === parseInt(e.target.value, 10))});
+													} else {
+														setState({stateProductPrices: productPrices});
+													}
+												}}
+												onSearch={value => {
+													console.log(value);
+													if (value) {
+														setState({stateProductPrices: productPrices.filter(pp => pp.price === parseInt(value, 10))});
+													} else {
+														setState({stateProductPrices: productPrices});
+													}
+												}}
+												style={{ width: 200 }}
+											/>
+											<Button
+												type='primary'
+												onClick={() => {
+													count += 1;
+													setState({ stateProductPrices : state.stateProductPrices.concat([{ price: 0, quantity: 0, tempId: count, createdAt: new Date()}])})
+												}}
+												style={{float: 'right'}} appearance="primary" intent="success" iconBefore="add">
+												Add cost price
+											</Button>
+										</div>
+										{
+											state.stateProductPrices.filter(pp => !pp.deleted)
+												.sort((a, b) => b.createdAt - a.createdAt).map(productPrice =>
+												<Component
+													key={productPrice.id || productPrice.tempId}
+													initialState={{ price: productPrice.price, quantity: productPrice.quantity, id: productPrice.id, deleted: false, showDeleteDialog: false }}
+												>
+													{({ state, setState }) => (
+														<div style={{
+															backgroundColor: productPrice.id ? 'none' : '#D4EEE2',
+														}}>
+															{state.deleted === false ?
+																<Row gutter={20} key={productPrice.id || count} className="product_price_item">
+																	<Col span={5} style={{ textAlign: 'center'}}>
+																		Cost Price
+																		<InputNumber
+																			required
+																			size={20}
+																			name="price"
+																			disabled={!!productPrice.id}
+																			value={state.price}
+																			onChange={(value) => {
+																				setState({price: parseFloat(value) || productPrice.price});
+																			}}
+																			placeholder="Price"
+																		/>
+																	</Col>
+																	<Col span={5}>
+																		Quantity
+																		<InputNumber
+																			name="quantity"
+																			value={state.quantity}
+																			onChange={(value) => {
+																				setState({quantity: parseFloat(value) || productPrice.quantity});
+																			}}
+																			placeholder="Quantity"
+																		/>
+																	</Col>
+																	<Col span={8}>
+																		Actions
+																		<div>
+																			<Button
+																				intent="success" style={{marginRight: '5px'}}
+																				onClick={() => {
+																					saveProductPrice({
+																						price: state.price,
+																						quantity: state.quantity,
+																						id: state.id
+																					}, row);
+																					setState({ price: state.price, quantity: state.quantity });
+																				}}>Save</Button>
+																			<Button type='danger' onClick={() =>
+																				Modal.confirm({
+																					title: 'Are you sure delete this cost price?',
+																					content: 'Some descriptions',
+																					okText: 'Yes',
+																					okType: 'danger',
+																					cancelText: 'No',
+																					onOk() {
+																						if (productPrice.id) {
+																							removeProductPrice(productPrice);
+																						}
+																						setState({ deleted: true, showDeleteDialog: false });
+																					},
+																					onCancel() {
+																						setState({ showDeleteDialog: false })
+																					},
+																				})
+																			}>
+																				-
+																			</Button>
+																		</div>
+																	</Col>
+																	<Col span={6}></Col>
+																</Row> : ''
+															}</div>
+													)}
+												</Component>
+											)
+										}
+										<div style={{marginTop: '30px'}}>
+											<Button
+												onClick={() => setState({ viewPrices: false, stateProductPrices: productPrices })}
+												appearance="primary"
+												intent="danger"
+												style={{marginRight: '20px'}}
+											>
+												Close
+											</Button>
+										</div>
+									</Modal>
+									<Button onClick={() => setState({ viewPrices: true })}>View Cost Prices of Product</Button>
+								</Col>
+							</Row>
+						</Form>
+						<div
+							style={{
+								position: 'absolute',
+								right: 0,
+								bottom: 0,
+								width: '100%',
+								borderTop: '1px solid #e9e9e9',
+								padding: '10px 16px',
+								background: '#fff',
+								textAlign: 'right',
+							}}
+						>
+							<Button
+								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
+								type='danger'
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									await updateRecord({
+										id: row.id,
+										name: getFieldValue('name'),
+										description: getFieldValue('description'),
+										quantity: getFieldValue('quantity'),
+										costPrice: getFieldValue('costPrice'),
+										sellingPrice: getFieldValue('sellingPrice'),
+										categoryId: getFieldValue('category'),
+										brandId: getFieldValue('brand'),
 									});
 									setState({ isShown: false })
-								}} intent='success' style={{marginLeft: '20px'}}>Save</Button>
-							</div>
+								}}
+								type="primary"
+							>
+								Save
+							</Button>
 						</div>
-					</SideSheet>
-					<Icon icon="edit" onClick={() => setState({ isShown: true })} size={20} color='primary' marginRight={16}/>
+					</Drawer>
+					<Icon
+						type="edit"
+						onClick={() => setState({ isShown: true })}
+						size={20}
+						color='primary'
+					/>
 				</React.Fragment>
 			)}
 		</Component>
 	);
 };
+
+const EditComponent = Form.create()(EditComponentRaw);
 
 const Products = (props) => {
 	const {user, company, users, products, brands, categories, database, history, search, DrawerIcon, modelName} = props;
@@ -449,14 +546,14 @@ const Products = (props) => {
 	const createRecord = async (productToCreate, options={}) => {
 		await database.action(async () => {
 			if (productToCreate.costPrice > productToCreate.sellingPrice) {
-				toaster.danger(`The product ${productToCreate.name} has cost price grater than selling price. You will be making a loss!`);
+				message.error(`The product ${productToCreate.name} has cost price grater than selling price. You will be making a loss!`);
 			}
 			if (productToCreate.costPrice === productToCreate.sellingPrice) {
-				toaster.danger(`The product ${productToCreate.name} has cost price equal to selling price. You will make no profit!`);
+				message.error(`The product ${productToCreate.name} has cost price equal to selling price. You will make no profit!`);
 			}
 			const productExists = await productsCollection.query(Q.where('name', productToCreate.name)).fetch();
 			if (productExists[0]) {
-				toaster.warning(`Product with the name ${productToCreate.name} already exists`);
+				message.warning(`Product with the name ${productToCreate.name} already exists`);
 				return;
 			}
 			let brand;
@@ -477,10 +574,10 @@ const Products = (props) => {
 			}
 
 			if (!brand) {
-				toaster.warning(`The product ${productToCreate.name} has no brand`);
+				message.warning(`The product ${productToCreate.name} has no brand`);
 			}
 			if (!category) {
-				toaster.warning(`The product ${productToCreate.name} has no category`);
+				message.warning(`The product ${productToCreate.name} has no category`);
 			}
 
 			const newProduct = await productsCollection.create(aProduct => {
@@ -521,12 +618,11 @@ const Products = (props) => {
 		await database.action(async () => {
 			if (record.id) {
 				const productPrice = await productPricesCollection.find(record.id);
-				const updatedProductPrice = await productPrice.update(aProductPrice => {
+				await productPrice.update(aProductPrice => {
 					aProductPrice.quantity = record.quantity;
 				});
-				if (updatedProductPrice.id) {
-					toaster.success('Successfully updated product cost price');
-				}
+
+				message.success('Successfully updated product cost price');
 			} else {
 				const newProductPrice = await productPricesCollection.create(aProductPrice => {
 					aProductPrice.price = record.price;
@@ -534,7 +630,7 @@ const Products = (props) => {
 					aProductPrice.product.set(product);
 				});
 				if (newProductPrice.id) {
-					toaster.success('Successfully saved product cost price');
+					message.success('Successfully saved product cost price');
 				}
 			}
 		});
@@ -558,8 +654,11 @@ const Products = (props) => {
 				aProduct.quantity = updatedRecord.quantity;
 				// aProduct.costPrice = updatedRecord.costPrice;
 				aProduct.sellingPrice = updatedRecord.sellingPrice;
+				aProduct.categoryId = updatedRecord.categoryId;
+				aProduct.brandId = updatedRecord.brandId;
 			});
 
+			message.success(`Successfully updated the product ${updatedRecord.name}`);
 		});
 	};
 
@@ -579,7 +678,7 @@ const Products = (props) => {
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push('sales')}>
-							<Icon icon="arrow-left" marginRight={16}/>
+							<Icon type="arrow-left"/>
 							Jump to Sales
 						</a>
 					</div>

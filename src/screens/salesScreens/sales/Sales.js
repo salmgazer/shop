@@ -8,6 +8,7 @@ import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
+import capitalize from 'capitalize';
 import {
 	SideSheet,
 	TextInput,
@@ -30,8 +31,9 @@ import Customer from "../../../model/customers/Customer";
 import ReactToPrint from "react-to-print";
 import SaleEntry from "../../../model/saleEntries/SaleEntry";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
-import { InputNumber, Select, Button, Icon, Row, Col } from "antd";
+import {InputNumber, Select, Button, Icon, Form, Switch, message, Modal, Row, Col, Drawer} from "antd";
 import TopNav from "../../../components/TopNav";
+import Installment from "../../../model/installments/Installment";
 const { Option } = Select;
 
 const fieldNames = [
@@ -44,7 +46,7 @@ const fieldNames = [
   { name: "updatedAt", label: "Updated", type: "string" }
 ];
 
-class ComponentToPrint extends React.Component {
+export class ComponentToPrint extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -56,12 +58,17 @@ class ComponentToPrint extends React.Component {
       customers,
       company,
       products,
-      saleTotal
+			saleType
     } = this.props;
     const currentCustomer = customer
       ? customers.find(c => c.id === customer)
       : null;
     let count = 0;
+    let saleTotal = 0;
+    saleEntries.forEach(se => {
+    	saleTotal += se.total;
+		});
+
     return (
       <div id="receipt-div">
         <header className="clearfix">
@@ -86,6 +93,10 @@ class ComponentToPrint extends React.Component {
                 <span>Phone</span>
                 {currentCustomer.phone}
               </div>
+							<div>
+								<span>Type</span>
+								<b>{capitalize(saleType)}</b>
+							</div>
             </div>
           ) : (
             ""
@@ -115,9 +126,16 @@ class ComponentToPrint extends React.Component {
             </thead>
             <tbody>
               {saleEntries.map(saleEntry => {
-                const product = products.find(
-                  p => p.id === saleEntry.productId
-                );
+              	let product;
+              	if (saleEntry.product) {
+									product = products.find(
+										p => p.id === saleEntry.product.id
+									);
+								} else {
+									product = products.find(
+										p => p.id === saleEntry.productId
+									);
+								}
                 count = count + 1;
                 return (
                   <tr key={product.id}>
@@ -175,7 +193,7 @@ class ComponentToPrint extends React.Component {
   }
 }
 
-const SaleEntryComponent = props => {
+const SaleEntryComponentRaw = props => {
   const {
     products,
     updateSaleEntry,
@@ -184,25 +202,29 @@ const SaleEntryComponent = props => {
     productPrices,
     saleEntries,
   } = props;
-  const [selectedProduct, setSelectedProduct] = React.useState(
-    saleEntry.productId || ""
+
+  const {getFieldDecorator, getFieldValue} = props.form;
+
+  const [selectedProductId, setSelectedProductId] = React.useState(
+    saleEntry.product ? saleEntry.product.id : null
   );
+
   const [stateQuantity, setStateQuantity] = React.useState(
     saleEntry.quantity || 0
   );
 
   let productTotalCount = 0;
 
-  const prices = selectedProduct
-    ? productPrices.filter(pp => pp._raw.product_id === selectedProduct)
+  const prices = selectedProductId
+    ? productPrices.filter(pp => pp._raw.product_id === selectedProductId)
     : [];
 
   prices.forEach(productPrice => {
     productTotalCount += productPrice.quantity;
   });
 
-  const product = selectedProduct
-    ? products.find(p => p.id === selectedProduct)
+  const product = selectedProductId
+    ? products.find(p => p.id === selectedProductId)
     : null;
 
   return (
@@ -234,35 +256,40 @@ const SaleEntryComponent = props => {
 						<Button>{product ? product.name : 'Select product...'}</Button>
 					</SelectMenu>
 					*/}
-        <Select
-          showSearch
-          style={{ width: 170 }}
-          placeholder="Select a product"
-          optionFilterProp="children"
-          onChange={item => {
-            setSelectedProduct(item);
-            const p = products.find(p => p.id === item);
-            updateSaleEntry({
-              sellingPrice: p.sellingPrice,
-              quantity: stateQuantity,
-              type: saleEntry.type,
-              total: p.sellingPrice * stateQuantity || 0,
-              productId: p.id,
-              key: saleEntry.key,
-              product: p
-            });
-          }}
-          filterOption={(input, option) =>
-            option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-            0
-          }
-        >
-          {products.filter(p => !saleEntries.map(se => se.productId).includes(p.id)).map(product => (
-            <Option key={product.id} value={product.id}>
-              {product.name}
-            </Option>
-          ))}
-        </Select>
+				{getFieldDecorator('selectedProduct', {
+					initialValue: product && product.id ? product.name : null,
+					rules: [{ required: true, message: 'Please select product' }],
+				})(
+					<Select
+						showSearch
+						style={{ width: 120 }}
+						placeholder="Select a product"
+						optionFilterProp="children"
+						onChange={item => {
+							setSelectedProductId(item);
+							const p = products.find(p => p.id === item);
+							updateSaleEntry({
+								sellingPrice: p.sellingPrice,
+								quantity: stateQuantity,
+								type: saleEntry.type,
+								total: p.sellingPrice * stateQuantity || 0,
+								productId: p.id,
+								key: saleEntry.key,
+								product: p
+							});
+						}}
+						filterOption={(input, option) =>
+							option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
+							0
+						}
+					>
+						{products.filter(p => !saleEntries.map(se => se.productId).includes(p.id)).map(product => (
+							<Option key={product.id} value={product.id}>
+								{product.name}
+							</Option>
+						))}
+					</Select>
+				)}
       </Grid>
       <Grid item>
         <Chip
@@ -274,41 +301,45 @@ const SaleEntryComponent = props => {
           style={{ marginLeft: "5px" }}
         />
         <Chip
-          label={`${productTotalCount} left`}
+          label={`${productTotalCount.toFixed(2)} left`}
           style={{ marginLeft: "5px" }}
           variant="outlined"
         />
       </Grid>
 
       <Grid item style={{ marginRight: "10px", marginLeft: "5px" }}>
-        <InputNumber
-          min={1}
-          max={productTotalCount}
-          defaultValue={0}
-          style={{
-            width: "80px"
-          }}
-          onChange={value => {
-            if (value > productTotalCount) {
-              toaster.danger(
-                `Only ${productTotalCount} ${product.name} are left`
-              );
-            } else {
-              setStateQuantity(value || 0);
-              updateSaleEntry({
-                sellingPrice: product
-                  ? product.sellingPrice
-                  : saleEntry.sellingPrice,
-                quantity: value || 0,
-                type: saleEntry.type,
-                total: product ? product.sellingPrice * value : saleEntry.total,
-                productId: selectedProduct ? selectedProduct : "",
-                key: saleEntry.key,
-                product
-              });
-            }
-          }}
-        />
+				{getFieldDecorator('productCount', {
+					initialValue: saleEntry.quantity ? saleEntry.quantity : 0,
+					rules: [{ required: true, message: 'Please select product' }],
+				})(
+					<InputNumber
+						min={0}
+						max={productTotalCount}
+						style={{
+							width: "80px"
+						}}
+						onChange={value => {
+							if (value > productTotalCount) {
+								toaster.danger(
+									`Only ${productTotalCount} ${product.name} are left`
+								);
+							} else {
+								setStateQuantity(value || 0);
+								updateSaleEntry({
+									sellingPrice: product
+										? product.sellingPrice
+										: saleEntry.sellingPrice,
+									quantity: value || 0,
+									type: saleEntry.type,
+									total: product ? product.sellingPrice * value : saleEntry.total,
+									productId: selectedProductId ? selectedProductId : null,
+									key: saleEntry.key,
+									product
+								});
+							}
+						}}
+					/>
+				)}
         {/*
 					<input
 						type="number"
@@ -374,6 +405,9 @@ const SaleEntryComponent = props => {
   );
 };
 
+const SaleEntryComponent = Form.create()(SaleEntryComponentRaw);
+
+
 const CreateComponent = props => {
   const [open, setOpen] = React.useState(false);
   const [salesEntries, setSaleEntries] = React.useState([]);
@@ -402,16 +436,15 @@ const CreateComponent = props => {
     newSalesEntries.forEach(se => {
       newSalesTotal += se.total;
     });
-    setSalesTotal(newSalesTotal);
+    setSalesTotal(newSalesTotal.toFixed(2));
   };
 
   const handleClose = () => {
-    setSaleEntries([]);
+    // setSaleEntries([]);
     setOpen(false);
   };
 
   const upateSaleEntry = saleEntry => {
-    console.log(saleEntry);
     const newSaleEntries = salesEntries;
     const entry = newSaleEntries.find(se => se.key === saleEntry.key);
     entry.productId = saleEntry.productId;
@@ -424,222 +457,215 @@ const CreateComponent = props => {
     salesEntries.forEach(se => {
       newSalesTotal += se.total;
     });
-    setSalesTotal(newSalesTotal);
+    setSalesTotal(newSalesTotal.toFixed(2));
   };
 
   return (
     <div>
       <React.Fragment>
-        <SideSheet
-          position={Position.LEFT}
-          isShown={open}
-          onCloseComplete={handleClose}
-        >
-          <div id="calculator-view">
-            <h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
-            <div style={{ fontSize: "60px" }}>
-              <b style={{ color: "#09d3ac" }}>GH₵</b>
-              <br /> {(salesTotal - discount).toFixed(2)}
-            </div>
-            {discount && discount > 0 ? (
-              <div style={{ marginTop: "50px" }}>
-                <h1 style={{ fontSize: "30px", color: "red" }}>
-                  <b>Discount</b>
-                  <br />
-                  GH₵ {discount}
-                </h1>
-              </div>
-            ) : (
-              ""
-            )}
-            {discount && discount > 0 ? (
-              <div style={{ marginTop: "20px" }}>
-                <h1 style={{ fontSize: "25px" }}>
-                  <b>Before discount</b>
-                  <br />
-                  GH₵ {salesTotal}
-                </h1>
-              </div>
-            ) : (
-              ""
-            )}
-          </div>
-        </SideSheet>
-      </React.Fragment>
-      <React.Fragment>
-        <SideSheet isShown={open} onCloseComplete={handleClose} style={{}}>
-          <div id="add-item">
-            <Button
-              type="primary"
-              shape="round"
-              icon="plus"
-              size="large"
-              onClick={() => {
-                if (salesEntries.length === products.length) {
-                  return;
-                }
-                setCount(count + 1);
-                console.log(count);
-                console.log(salesEntries);
-                setSaleEntries(
-                  salesEntries.concat([
-                    {
-                      productId: "",
-                      quantity: "",
-                      sellingPrice: "",
-                      type: "sold",
-                      key: count,
-                      total: 0
-                    }
-                  ])
-                );
-              }}
-            >
-              Add Item
-            </Button>
-          </div>
-          <div style={{ marginBottom: '20px' }}>
-            <b
-              style={{
-                marginLeft: "50px",
-                marginRight: "20px",
-                fontWeight: "normal"
-              }}
-            >
-              Select customer:
-            </b>
-            <Select
-              showSearch
-              style={{ width: '60%' }}
-              placeholder="Select a customer"
-              optionFilterProp="children"
-              onChange={item => setSelectedCustomer(item)}
-              filterOption={(input, option) =>
-                option.props.children
-                  .toLowerCase()
-                  .indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {customers.map(customer => (
-                <Option key={customer.id} value={customer.id}>
-                  {customer.name} - {customer.phone}
-                </Option>
-              ))}
-            </Select>
-          </div>
-          <div  style={{ marginBottom: "40px"}}>
-						<b
-							style={{
-								marginLeft: "50px",
-								marginRight: "65px",
-								fontWeight: "normal"
-							}}
-						>
-							Discount:
-						</b>
-						<InputNumber
-							min={0}
-							defaultValue={0}
-							style={{
-								width: "200px"
-							}}
-							onChange={value => setDiscount(value)}
-						/>
-          </div>
-          {salesEntries.map(saleEntry => (
-            <SaleEntryComponent
-              removeSaleEntry={removeSaleEntry}
-              key={saleEntry.key}
-              updateSaleEntry={upateSaleEntry}
-              saleEntry={saleEntry}
-              saleEntries={salesEntries}
-              database={database}
-              products={products}
-              productPrices={productPrices}
-            />
-          ))}
-          {salesEntries.filter(
-            se => se.quantity && se.sellingPrice && se.productId
-          ).length > 0 ? (
-            <div style={{ marginTop: "20px", marginBottom: "50px" }}>
-              <Component initialState={{ isShown: false }}>
-                {({ state, setState }) => (
-                  <Pane>
-                    <Dialog
-                      isShown={state.isShown}
-                      title="Invoice"
-                      onCloseComplete={() => setState({ isShown: false })}
-                      hasFooter={false}
-                    >
-                      <Pane height={1800} width="1000px">
-                        <div>
-                          <ReactToPrint
-                            trigger={() => (
-                              <button
-                                style={{
-                                  fontSize: "15px",
-                                  backgroundColor: "orange",
-                                  color: "black",
-                                  padding: "10px",
-                                  width: "100px",
-                                  margin: "0 auto",
-                                  borderRadius: "5px",
-                                  bottom: 0
-                                }}
-                              >
-                                Print
-                              </button>
-                            )}
-                            content={() => componentRef.current}
-                          />
-                          <ComponentToPrint
-                            customers={customers}
-                            saleTotal={salesTotal}
-                            products={products}
-                            company={company}
-                            customer={selectedCustomer}
-                            saleEntries={salesEntries}
-                            discount={discount}
-                            ref={componentRef}
-                          />
-                        </div>
-                      </Pane>
-                    </Dialog>
-                    <Button
-                      size={"large"}
-                      style={{
-                        width: "200px",
-                        fontSize: "40px",
-                        height: "100px",
-                        float: "left",
-                        marginLeft: "20px",
-                        marginBottom: "50px",
-                        borderRadius: "10px",
-                        backgroundColor: "grey",
-                        color: "white",
-                        padding: "10px"
-                      }}
-                      onClick={() => {
-                        setSaleEntries(
-                          salesEntries.filter(
-                            se => se.sellingPrice && se.productId && se.quantity
-                          )
-                        );
-                        createRecord(
-                          salesEntries,
-                          salesTotal,
-                          selectedCustomer,
-                          discount,
-                          "invoice"
-                        );
-                        setState({ isShown: true });
-                      }}
-                    >
-                      Save
-                    </Button>
-                  </Pane>
-                )}
-              </Component>
+				<Drawer
+					title="Sales and Invoice"
+					width='100%'
+					onClose={handleClose}
+					visible={open}
+					bodyStyle={{ paddingBottom: 80 }}
+				>
+					<Row>
+						<Col span={8} id="calculator-view">
+							<h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
+							<div style={{ fontSize: "60px" }}>
+								<b style={{ color: "#09d3ac" }}>GH₵</b>
+								<br /> {(salesTotal - discount).toFixed(2)}
+							</div>
+							{discount && discount > 0 ? (
+								<div style={{ marginTop: "50px" }}>
+									<h1 style={{ fontSize: "30px", color: "red" }}>
+										<b>Discount</b>
+										<br />
+										GH₵ {discount}
+									</h1>
+								</div>
+							) : (
+								""
+							)}
+							{discount && discount > 0 ? (
+								<div style={{ marginTop: "20px" }}>
+									<h1 style={{ fontSize: "25px" }}>
+										<b>Before discount</b>
+										<br />
+										GH₵ {salesTotal}
+									</h1>
+								</div>
+							) : (
+								""
+							)}
+						</Col>
+						<Col span={2}></Col>
+						<Col span={14}>
+							<div id="add-item">
+								<Button
+									type="primary"
+									shape="round"
+									icon="plus"
+									size="large"
+									onClick={() => {
+										if (salesEntries.length === products.length) {
+											return;
+										}
+										setCount(count + 1);
+										setSaleEntries(
+											salesEntries.concat([
+												{
+													productId: "",
+													quantity: "",
+													sellingPrice: "",
+													type: "sold",
+													key: count,
+													total: 0
+												}
+											])
+										);
+									}}
+								>
+									Add Item
+								</Button>
+							</div>
+							<div style={{ marginBottom: '20px' }}>
+								<b
+									style={{
+										marginLeft: "50px",
+										marginRight: "20px",
+										fontWeight: "normal"
+									}}
+								>
+									Select customer:
+								</b>
+								<Select
+									showSearch
+									style={{ width: '60%' }}
+									placeholder="Select a customer"
+									optionFilterProp="children"
+									onChange={item => setSelectedCustomer(item)}
+									filterOption={(input, option) =>
+										option.props.children
+											.toLowerCase()
+											.indexOf(input.toLowerCase()) >= 0
+									}
+								>
+									{customers.map(customer => (
+										<Option key={customer.id} value={customer.id}>
+											{customer.name} - {customer.phone}
+										</Option>
+									))}
+								</Select>
+							</div>
+							<div  style={{ marginBottom: "40px"}}>
+								<b
+									style={{
+										marginLeft: "50px",
+										marginRight: "67px",
+										fontWeight: "normal"
+									}}
+								>
+									Discount:
+								</b>
+								<InputNumber
+									min={0}
+									defaultValue={0}
+									style={{
+										width: "200px"
+									}}
+									onChange={value => setDiscount(value)}
+								/>
+							</div>
+							{salesEntries.map(saleEntry => (
+								<SaleEntryComponent
+									removeSaleEntry={removeSaleEntry}
+									key={saleEntry.key}
+									updateSaleEntry={upateSaleEntry}
+									saleEntry={saleEntry}
+									saleEntries={salesEntries}
+									database={database}
+									products={products}
+									productPrices={productPrices}
+								/>
+							))}
+							{salesEntries.filter(
+								se => se.quantity && se.sellingPrice && se.productId
+							).length > 0 ? (
+								<div style={{ marginTop: "20px", marginBottom: "50px" }}>
+									<Component initialState={{ isShown: false }}>
+										{({ state, setState }) => (
+											<Pane id="sale-save">
+												<Dialog
+													isShown={state.isShown}
+													title="Invoice"
+													onCloseComplete={() => setState({ isShown: false })}
+													hasFooter={false}
+												>
+													<Pane height={1800} width="1000px">
+														<div>
+															<ReactToPrint
+																trigger={() => (
+																	<button
+																		style={{
+																			fontSize: "15px",
+																			backgroundColor: "orange",
+																			color: "black",
+																			padding: "10px",
+																			width: "100px",
+																			margin: "0 auto",
+																			borderRadius: "5px",
+																			bottom: 0
+																		}}
+																	>
+																		Print
+																	</button>
+																)}
+																content={() => componentRef.current}
+															/>
+															<ComponentToPrint
+																customers={customers}
+																saleTotal={salesTotal}
+																products={products}
+																company={company}
+																customer={selectedCustomer}
+																saleEntries={salesEntries}
+																discount={discount}
+																saleType="invoice"
+																ref={componentRef}
+															/>
+														</div>
+													</Pane>
+												</Dialog>
+												<Button
+													shape="round"
+													icon="save"
+													size="large"
+													onClick={() => {
+														setSaleEntries(
+															salesEntries.filter(
+																se => se.sellingPrice && se.productId && se.quantity
+															)
+														);
+														createRecord(
+															salesEntries,
+															salesTotal,
+															selectedCustomer,
+															discount,
+															"invoice"
+														);
+
+														setOpen(false);
+														setState({ isShown: true });
+													}}
+												>
+													Save
+												</Button>
+											</Pane>
+										)}
+									</Component>
+									{/*
               <Component initialState={{ isShown: false }}>
                 {({ state, setState }) => (
                   <Pane>
@@ -718,11 +744,14 @@ const CreateComponent = props => {
                   </Pane>
                 )}
               </Component>
-            </div>
-          ) : (
-            ""
-          )}
-        </SideSheet>
+              */}
+								</div>
+							) : (
+								""
+							)}
+						</Col>
+					</Row>
+				</Drawer>
 				<Avatar
 					style={{
 						backgroundColor: 'orange',
@@ -741,12 +770,411 @@ const CreateComponent = props => {
 };
 
 const EditComponent = props => {
+	const {
+		updateRecord,
+		products,
+		customers,
+		company,
+		database,
+		productPrices,
+    customer,
+    sale,
+    saleEntries
+	} = props;
+	const [open, setOpen] = React.useState(false);
+	const [acceptCredit, setAcceptCredit] = React.useState(false);
+	const [count, setCount] = React.useState(0);
+	const [salesEntries, setSaleEntries] = React.useState(saleEntries.map(se => {
+	  return {
+	    id: se.id,
+      type: se.type,
+      costPrice: se.costPrice,
+      sellingPrice: se.sellingPrice,
+      total: se.total,
+      productName: se.productName,
+      companyId: se.companyId,
+      product: se.product,
+			quantity: se.quantity,
+			productId: se.product.id
+    };
+  }));
+
+	let oldSalesTotal = 0;
+	salesEntries.forEach(se => {
+		oldSalesTotal += se.total;
+	});
+
+	const [salesTotal, setSalesTotal] = React.useState(oldSalesTotal);
+	const [selectedCustomer, setSelectedCustomer] = React.useState(sale.customerId);
+	const [discount, setDiscount] = React.useState(sale.discount);
+	const [cashReceived, setCashReceived] = React.useState(0);
+	const componentRef = useRef();
+
+
+
+	const handleClickOpen = () => {
+		setOpen(true);
+	};
+
+	const removeSaleEntry = key => {
+		const newSalesEntries = salesEntries.filter(se => se.key !== key);
+		setSaleEntries(newSalesEntries);
+		let newSalesTotal = 0;
+		newSalesEntries.forEach(se => {
+			newSalesTotal += se.total;
+		});
+		setSalesTotal(newSalesTotal);
+	};
+
+	const handleClose = () => {
+		setSaleEntries([]);
+		setOpen(false);
+	};
+
+	const upateSaleEntry = async saleEntry => {
+		const newSaleEntries = salesEntries;
+		const entry = newSaleEntries.find(se => se.key === saleEntry.key);
+		entry.productId = saleEntry.productId;
+		entry.quantity = saleEntry.quantity;
+		entry.sellingPrice = saleEntry.sellingPrice;
+		entry.type = saleEntry.type;
+		entry.total = saleEntry.total;
+		setSaleEntries(newSaleEntries);
+		let newSalesTotal = 0;
+		salesEntries.forEach(se => {
+			newSalesTotal += se.total;
+		});
+		setSalesTotal(newSalesTotal);
+
+		/*
+		await database.action(async () => {
+			const saleEntryToUpdate = await database.collections.get(SaleEntry.table).find(saleEntry.id);
+			await saleEntryToUpdate.update(aSaleEntry => {
+
+			});
+		});
+		*/
+	};
+
+
+	return (
+		<div>
+			<React.Fragment>
+				<Drawer
+					title="Sales and Invoice"
+					width='100%'
+					onClose={handleClose}
+					visible={open}
+					bodyStyle={{ paddingBottom: 80 }}
+				>
+					<Row>
+						<Col span={8} id="calculator-view">
+							<h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
+							<div style={{ fontSize: "60px" }}>
+								<b style={{ color: "#09d3ac" }}>GH₵</b>
+								<br /> {(salesTotal - discount).toFixed(2)}
+							</div>
+							{discount && discount > 0 ? (
+								<div style={{ marginTop: "50px" }}>
+									<h1 style={{ fontSize: "30px", color: "red" }}>
+										<b>Discount</b>
+										<br />
+										GH₵ {discount}
+									</h1>
+								</div>
+							) : (
+								""
+							)}
+							{discount && discount > 0 ? (
+								<div style={{ marginTop: "20px" }}>
+									<h1 style={{ fontSize: "25px" }}>
+										<b>Before discount</b>
+										<br />
+										GH₵ {salesTotal}
+									</h1>
+								</div>
+							) : (
+								""
+							)}
+						</Col>
+						{/*<SideSheet isShown={open} onCloseComplete={handleClose} style={{}}>*/}
+						<Col span={2}></Col>
+						<Col span={14}>
+							<div id="add-item">
+								<Button
+									type="primary"
+									shape="round"
+									icon="plus"
+									size="large"
+									onClick={() => {
+										if (salesEntries.length === products.length) {
+											return;
+										}
+										setCount(count + 1);
+										setSaleEntries(
+											salesEntries.concat([
+												{
+													productId: "",
+													quantity: "",
+													sellingPrice: "",
+													type: "sold",
+													key: count,
+													total: 0
+												}
+											])
+										);
+									}}
+								>
+									Add Product
+								</Button>
+							</div>
+							<div style={{ marginBottom: '20px' }}>
+								<b
+									style={{
+										marginLeft: "50px",
+										marginRight: "20px",
+										fontWeight: "normal"
+									}}
+								>
+									Select customer:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								</b>
+								<Select
+									showSearch
+									style={{ width: '60%' }}
+									placeholder="Select a customer"
+									optionFilterProp="children"
+									value={customer.id}
+									onChange={item => setSelectedCustomer(item)}
+									filterOption={(input, option) =>
+										option.props.children
+											.toLowerCase()
+											.indexOf(input.toLowerCase()) >= 0
+									}
+								>
+									{customers.map(customer => (
+										<Option key={customer.id} value={customer.id}>
+											{customer.name} - {customer.phone}
+										</Option>
+									))}
+								</Select>
+							</div>
+							<div  style={{ marginBottom: "20px"}}>
+								<b
+									style={{
+										marginLeft: "50px",
+										marginRight: "50px",
+										fontWeight: "normal"
+									}}
+								>
+									Discount (GHS):
+								</b>
+								<InputNumber
+									min={0}
+									defaultValue={0}
+									style={{
+										width: "200px"
+									}}
+									value={discount}
+									onChange={value => setDiscount(value)}
+								/>
+							</div>
+							<div  style={{ marginBottom: "20px"}}>
+								<b
+									style={{
+										marginLeft: "16px",
+										marginRight: "50px",
+										fontWeight: "normal"
+									}}
+								>
+									Cash received (GHS):
+								</b>
+								<InputNumber
+									min={0}
+									defaultValue={0}
+									style={{
+										width: "200px"
+									}}
+									onChange={value => setCashReceived(value)}
+								/>
+							</div>
+							<div  style={{ marginBottom: "40px"}}>
+								<b
+									style={{
+										marginLeft: "50px",
+										marginRight: "20px",
+										fontWeight: "normal"
+									}}
+								>
+									Change (GHS):
+								</b>
+								<Chip label={(cashReceived - (salesTotal - discount)).toFixed(2)} variant="outlined" />
+								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept credit</b>
+								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCredit} />
+							</div>
+							{salesEntries.map(saleEntry => (
+								<SaleEntryComponent
+									removeSaleEntry={removeSaleEntry}
+									key={saleEntry.id}
+									updateSaleEntry={upateSaleEntry}
+									saleEntry={saleEntry}
+									saleEntries={salesEntries}
+									database={database}
+									products={products}
+									productPrices={productPrices}
+								/>
+							))}
+							{salesEntries.filter(
+								se => se.quantity && se.sellingPrice && se.productId
+							).length > 0 ? (
+								<div style={{ marginTop: "20px", marginBottom: "50px" }}>
+									<Component initialState={{ isShown: false, actualSaleType: sale.type }}>
+										{({ state, setState }) => (
+											<Pane id="sale-save">
+												<Dialog
+													isShown={state.isShown}
+													title="Invoice"
+													onCloseComplete={() => setState({ isShown: false })}
+													hasFooter={false}
+												>
+													<Pane height={1800} width="1000px">
+														<div>
+															<ReactToPrint
+																trigger={() => (
+																	<button
+																		style={{
+																			fontSize: "15px",
+																			backgroundColor: "orange",
+																			color: "black",
+																			padding: "10px",
+																			width: "100px",
+																			margin: "0 auto",
+																			borderRadius: "5px",
+																			bottom: 0
+																		}}
+																	>
+																		Print
+																	</button>
+																)}
+																content={() => componentRef.current}
+															/>
+															<ComponentToPrint
+																customers={customers}
+																saleTotal={salesTotal}
+																products={products}
+																company={company}
+																customer={selectedCustomer}
+																saleEntries={salesEntries}
+																discount={discount}
+																ref={componentRef}
+																saleType={state.actualSaleType}
+															/>
+														</div>
+													</Pane>
+												</Dialog>
+												<Row gutter={16} style={{ margin: '0 auto' }}>
+													<Col span={8}>
+														<Button
+															type='danger'
+															onClick={() => {
+																setSaleEntries(
+																	salesEntries.filter(
+																		se => se.sellingPrice && se.productId && se.quantity
+																	)
+																);
+																updateRecord({
+																	salesEntries,
+																	salesTotal,
+																	selectedCustomer,
+																	discount,
+																	sale,
+																	cashReceived,
+																	saleType: "sale",
+																	acceptCredit
+																});
+																setState({ isShown: true, actualSaleType: "sale" });
+															}}
+														>
+															Sell
+														</Button>
+													</Col>
+													<Col span={8}>
+														<Button
+															onClick={() => {
+																setSaleEntries(
+																	salesEntries.filter(
+																		se => se.sellingPrice && se.productId && se.quantity
+																	)
+																);
+
+																updateRecord({
+																	salesEntries,
+																	salesTotal,
+																	selectedCustomer,
+																	discount,
+																	sale,
+																	cashReceived,
+																	saleType: "invoice",
+																	acceptCredit
+																});
+																setOpen(false);
+																setState({ isShown: true, actualSaleType: "invoice" });
+															}}
+														>
+															Save
+														</Button>
+													</Col>
+													<Col span={8}>
+														<Button
+															type='primary'
+															onClick={() => {
+																setSaleEntries(
+																	salesEntries.filter(
+																		se => se.sellingPrice && se.productId && se.quantity
+																	)
+																);
+
+																setOpen(false);
+																setState({ isShown: true });
+															}}
+														>
+															Print
+														</Button>
+													</Col>
+												</Row>
+											</Pane>
+										)}
+									</Component>
+								</div>
+							) : (
+								""
+							)}
+						</Col>
+						{/*</SideSheet>*/}
+						</Row>
+				</Drawer>
+				<Icon
+					type="edit"
+					onClick={handleClickOpen}
+				/>
+			</React.Fragment>
+		</div>
+	);
+};
+
+const EnhancedEditComponent = withDatabase(
+	withObservables([], ({ database, sale }) => ({
+		saleEntries: database.collections.get(SaleEntry.table).query(Q.where('sale_id', sale.id)).observe(),
+    customer: database.collections.get(Customer.table).find(sale.customerId),
+	}))(withRouter(EditComponent))
+);
+
+/*
+const EditComponent = props => {
   const { row, modelName, keyFieldName, updateRecord } = props;
   return (
     <Component
       initialState={{
         isShown: false,
-        newSaleName: row.name || "",
         newSaleNotes: row.note || "",
         newSalePhone: row.phone || ""
       }}
@@ -811,18 +1239,22 @@ const EditComponent = props => {
               </div>
             </div>
           </SideSheet>
-          <Icon
-            type="edit"
-            onClick={() => setState({ isShown: true })}
-            className="hand-pointer"
-            size={20}
-            color="muted"
-          />
+          {
+            row.type === 'invoice' ?
+							<Icon
+								type="edit"
+								onClick={() => setState({ isShown: true })}
+								className="hand-pointer"
+								size={20}
+								color="muted"
+							/> : ''
+          }
         </React.Fragment>
       )}
     </Component>
   );
 };
+*/
 
 const Sales = props => {
   const {
@@ -833,103 +1265,227 @@ const Sales = props => {
     database,
     history,
     parentLocation,
-    customers,
     products,
     search,
     DrawerIcon,
     modelName,
-    productPrices
+    productPrices,
+    customers
   } = props;
   const salesCollection = database.collections.get(pluralize(modelName));
   const saleEntriesCollection = database.collections.get(SaleEntry.table);
   const productsCollection = database.collections.get(Product.table);
+	const installmentsCollection = database.collections.get(Installment.table);
 
   const createRecord = async (
-    saleEntries,
-    salesTotal,
-    selectedCustomer,
-    discount,
-    saleType
-  ) => {
-    const currentCustomer =
-      customers.find(c => c.id === selectedCustomer) || null;
+  	saleEntries,
+		salesTotal,
+		selectedCustomer,
+		discount,
+		saleType,
+		cashReceived
+		) => {
+			const currentCustomer =
+				customers.find(c => c.id === selectedCustomer) || null;
 
-    await database.action(async () => {
-      const newSale = await salesCollection.create(sale => {
-        sale.discount = discount;
-        sale.type = saleType;
-        sale.companyId = company.id;
-        sale.createdBy.set(user);
-        if (currentCustomer) {
-          sale.customer.set(currentCustomer);
-        }
-      });
+			await database.action(async () => {
+				const newSale = await salesCollection.create(sale => {
+					sale.discount = discount;
+					sale.type = saleType;
+					sale.companyId = company.id;
+					sale.createdBy.set(user);
+					if (currentCustomer) {
+						sale.customer.set(currentCustomer);
+					}
+				});
 
 
-      if (newSale && newSale.id) {
-        saleEntries.forEach(async saleEntry => {
-          const product = await productsCollection.find(saleEntry.productId);
-          const currentProductPrices = await product.productPrices.fetch();
 
-          let totalProductPriceQuantity = 0; //fetched so far, belongs to saleEntry
-          const costPriceAllocations = [];
-          currentProductPrices
-            .sort((a, b) => b.createdAt - a.createdAt)
-            .forEach(async pp => {
-              if (totalProductPriceQuantity < saleEntry.quantity) {
-                let newProductPriceQuantity = pp.quantity;
-                if (pp.quantity < saleEntry.quantity) {
-                  totalProductPriceQuantity += pp.quantity;
-                  newProductPriceQuantity = 0;
-                } else {
-                  totalProductPriceQuantity += saleEntry.quantity;
-                  newProductPriceQuantity = pp.quantity - saleEntry.quantity;
-                }
-                if (newProductPriceQuantity !== pp.quantity) {
-                  if (saleType === "sale") {
-                    // dont make changes to productPrice when dealing with invoice
-                    costPriceAllocations.push({
-                      price: pp.price,
-                      quantity: pp.quantity - newProductPriceQuantity
-                    });
+      	if (newSale && newSale.id) {
+        	saleEntries.forEach(async saleEntry => {
+						const product = await productsCollection.find(saleEntry.productId);
+						const currentProductPrices = await product.productPrices.fetch();
 
-                    await database.action(async () => {
-                      await pp.update(aPp => {
-                        aPp.quantity = newProductPriceQuantity;
-                      });
-                    });
-                  }
+						let totalProductPriceQuantity = 0; //fetched so far, belongs to saleEntry
+						const costPriceAllocations = [];
+						currentProductPrices
+							.sort((a, b) => b.createdAt - a.createdAt)
+							.forEach(async pp => {
+								if (totalProductPriceQuantity < saleEntry.quantity) {
+									let newProductPriceQuantity = pp.quantity;
+									if (pp.quantity < saleEntry.quantity) {
+										totalProductPriceQuantity += pp.quantity;
+										newProductPriceQuantity = 0;
+									} else {
+										totalProductPriceQuantity += saleEntry.quantity;
+										newProductPriceQuantity = pp.quantity - saleEntry.quantity;
+									}
+									if (newProductPriceQuantity !== pp.quantity) {
+										if (saleType === "sale") {
+											// dont make changes to productPrice when dealing with invoice
+											costPriceAllocations.push({
+												price: pp.price,
+												quantity: pp.quantity - newProductPriceQuantity
+											});
 
-                  await database.action(async () => {
-                    await saleEntriesCollection.create(newSaleEntry => {
-                      newSaleEntry.quantity = saleEntry.quantity;
-                      newSaleEntry.sellingPrice = saleEntry.sellingPrice;
-                      newSaleEntry.type = saleEntry.type;
-                      newSaleEntry.total = saleEntry.total;
-                      newSaleEntry.product.set(product);
-                      newSaleEntry.productName = product.name;
-                      newSaleEntry.sale.set(newSale);
-                      newSaleEntry.costPriceAllocations = costPriceAllocations;
-                    });
-                  });
-                }
-              }
-            });
-        });
-      }
+											/*
+											await database.action(async () => {
+												await pp.update(aPp => {
+													aPp.quantity = newProductPriceQuantity;
+												});
+											});
+											*/
+										}
+
+										await database.action(async () => {
+											const createdSE = await saleEntriesCollection.create(newSaleEntry => {
+												newSaleEntry.quantity = saleEntry.quantity;
+												newSaleEntry.sellingPrice = saleEntry.sellingPrice;
+												newSaleEntry.type = saleEntry.type;
+												newSaleEntry.total = saleEntry.total;
+												newSaleEntry.product.set(product);
+												newSaleEntry.productName = product.name;
+												newSaleEntry.sale.set(newSale);
+												newSaleEntry.costPriceAllocations = costPriceAllocations;
+											});
+											console.log("!!!!!!!!!!!!!!!!!!!");
+											console.log(createdSE);
+											console.log("!!!!!!!!!!!!!!!!!!!");
+										});
+									}
+								}
+							});
+        	});
+      	}
     });
   };
 
-  const updateRecord = async updatedRecord => {
-    await database.action(async () => {
-      const sale = await salesCollection.find(updatedRecord.id);
-      await sale.update(aSale => {
-        aSale.name = updatedRecord.name;
-        aSale.note = updatedRecord.note;
-        aSale.phone = updatedRecord.phone;
-      });
-    });
-  };
+	const updateRecord = async (options) => {
+		console.log(options);
+		const { sale, selectedCustomer, discount, salesEntries, saleType, cashReceived, salesTotal, acceptCredit } = options;
+
+		const currentCustomer =
+			customers.find(c => c.id === selectedCustomer) || null;
+
+		await database.action(async () => {
+
+			const installments = await installmentsCollection.query(Q.where('sale_id', sale.id)).fetch();
+			let totalPaid = 0;
+			installments.forEach(ins => {
+				totalPaid += ins.amount;
+			});
+
+			let paymentStatus = 'unpaid';
+			if ((totalPaid + cashReceived + discount) >= salesTotal) {
+				paymentStatus = 'full payment'
+			} else if ((totalPaid + cashReceived + discount) < salesTotal && (totalPaid + cashReceived) > 0 ) {
+				paymentStatus = 'part payment';
+			}
+
+			console.log(paymentStatus);
+			console.log(paymentStatus);
+			console.log(paymentStatus);
+			console.log(totalPaid);
+			console.log(totalPaid);
+			console.log(totalPaid);
+			console.log(totalPaid + cashReceived);
+			console.log(totalPaid + cashReceived);
+			console.log(totalPaid + cashReceived);
+			console.log(cashReceived);
+			console.log(cashReceived);
+			console.log(cashReceived);
+
+			const updatedSale = await salesCollection.find(sale.id);
+			console.log(updatedSale);
+			console.log(saleType);
+			await updatedSale.update(aSale => {
+				aSale.discount = discount;
+				console.log(aSale);
+				aSale.type = saleType;
+				aSale.paymentStatus = paymentStatus;
+				aSale.createdBy.set(user);
+				aSale.customer.set(currentCustomer);
+			});
+
+			if (saleType === 'sale') {
+				if (cashReceived < (salesTotal - discount - totalPaid) && acceptCredit === false) {
+					message.error(`You need to enter adequate cash amount received`);
+					return;
+				}
+
+				if (cashReceived > (salesTotal - discount - totalPaid)) {
+					const change = (cashReceived - (salesTotal - discount - totalPaid)).toFixed(2);
+					Modal.warning({
+						title: `Give change to ${currentCustomer.name}`,
+						content: <b>You need to give change of GHS {change}</b>,
+					});
+				}
+
+				if (cashReceived && cashReceived > 0) {
+					// add installment
+					await installmentsCollection.create(installment => {
+						installment.sale.set(updatedSale);
+						installment.createdBy.set(user);
+						installment.amount = cashReceived <= (salesTotal - totalPaid) ?  cashReceived : salesTotal - totalPaid;
+					});
+				}
+			}
+
+
+			const oldSaleEntries = await saleEntriesCollection.query(Q.where('sale_id', sale.id)).fetch();
+			oldSaleEntries.forEach(async se => await se.remove());
+
+			salesEntries.forEach(async saleEntry => {
+				const product = await productsCollection.find(saleEntry.productId);
+				const currentProductPrices = await product.productPrices.fetch();
+
+				let totalProductPriceQuantity = 0; //fetched so far, belongs to saleEntry
+				const costPriceAllocations = [];
+				currentProductPrices
+					.sort((a, b) => b.createdAt - a.createdAt)
+					.forEach(async pp => {
+						if (totalProductPriceQuantity < saleEntry.quantity) {
+							let newProductPriceQuantity = pp.quantity;
+							if (pp.quantity < saleEntry.quantity) {
+								totalProductPriceQuantity += pp.quantity;
+								newProductPriceQuantity = 0;
+							} else {
+								totalProductPriceQuantity += saleEntry.quantity;
+								newProductPriceQuantity = pp.quantity - saleEntry.quantity;
+							}
+							if (newProductPriceQuantity !== pp.quantity) {
+								// dont make changes to productPrice when dealing with invoice
+								costPriceAllocations.push({
+									price: pp.price,
+									quantity: pp.quantity - newProductPriceQuantity
+								});
+
+								if (saleType === "sale") {
+									await database.action(async () => {
+										await pp.update(aPp => {
+											aPp.quantity = newProductPriceQuantity;
+										});
+									});
+								}
+
+								await database.action(async () => {
+									await saleEntriesCollection.create(newSaleEntry => {
+										newSaleEntry.quantity = saleEntry.quantity;
+										newSaleEntry.sellingPrice = saleEntry.sellingPrice;
+										newSaleEntry.type = saleEntry.type;
+										newSaleEntry.total = saleEntry.total;
+										newSaleEntry.product.set(product);
+										newSaleEntry.productName = product.name;
+										newSaleEntry.sale.set(sale);
+										newSaleEntry.costPriceAllocations = costPriceAllocations;
+									});
+								});
+							}
+						}
+					});
+			});
+		});
+	};
 
   const clearAll = () => {
     database.action(async () => {
@@ -993,9 +1549,9 @@ const Sales = props => {
         <div id="main-body">
           <div>
             <SalesCardList
-              entries={sales}
+              entries={sales.sort((a, b) => b.updatedAt - a.updatedAt)}
               users={users}
-              EditComponent={EditComponent}
+              EditComponent={EnhancedEditComponent}
               updateRecord={updateRecord}
               displayNameField="name"
               keyFieldName="id"
@@ -1006,6 +1562,10 @@ const Sales = props => {
               search={search}
               user={user}
               model={Sale}
+              customers={customers}
+              products={products}
+              productPrices={productPrices}
+							company={company}
             />
           </div>
           <div id="bottom-area">

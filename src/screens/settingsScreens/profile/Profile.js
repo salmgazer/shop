@@ -5,12 +5,11 @@ import "./Profile.css";
 import { withRouter } from "react-router-dom";
 
 import PropTypes from "prop-types";
-import { Icon } from "evergreen-ui";
 import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
-import SyncService from "../../../services/SyncService";
 import {Input} from 'antd';
 import User from "../../../model/users/User";
+import {message, Icon} from 'antd';
 
 
 
@@ -76,6 +75,8 @@ class Profile extends React.Component{
 					aUser.address = address;
 					aUser.password = passToUse;
 				});
+
+				message.success('Successfully updated your profile!');
 				// search({ key: 'name', value: ''});
 			});
 		};
@@ -100,7 +101,7 @@ class Profile extends React.Component{
 						</div>
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>
-								<Icon icon="arrow-left" marginRight={16}/>
+								<Icon type="arrow-left"/>
 								Jump to Sales
 							</a>
 						</div>
