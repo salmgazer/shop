@@ -640,7 +640,7 @@ class CardList extends React.Component {
 						>
 							<Option value="all">All</Option>
 							{
-								customers.map(c => <Option value={c.id}>{c.name}</Option>)
+								customers.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)
 							}
 						</Select>
           </Grid>

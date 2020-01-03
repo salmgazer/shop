@@ -10,7 +10,7 @@ import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
 import SyncService from "../../../services/SyncService";
 import { notification, Icon, Spin, Result, Button } from 'antd';
-
+import { Offline, Online } from "react-detect-offline";
 
 
 
@@ -121,12 +121,28 @@ class Sync extends React.Component{
 							}
 						</div>
 						<div id="bottom-area">
-							<button
+							<Online>
+							<Button
+								shape='round'
+								type='primary'
+								style={{
+									fontSize: '30px',
+									backgroundColor: 'orange',
+									border: "2px solid white"
+								}}
 								className="sell-btn"
 								onClick={this.sync}
 							>
 								Sync
-							</button>
+							</Button>
+							</Online>
+							<Offline>
+								<p style={{
+									color: 'red',
+									fontSize: '15px',
+									textAlign: 'center'
+								}}>You are not connected to the internet!</p>
+							</Offline>
 						</div>
 					</div>
 				</div>

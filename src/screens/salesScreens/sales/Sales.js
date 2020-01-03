@@ -27,7 +27,7 @@ import Customer from "../../../model/customers/Customer";
 import ReactToPrint from "react-to-print";
 import SaleEntry from "../../../model/saleEntries/SaleEntry";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
-import {InputNumber, Select, Button, Icon, Form, Switch, message, Modal, Row, Col, Drawer} from "antd";
+import {InputNumber, Select, Button, Icon, Form, Switch, message, Modal, Row, Col, Drawer, Statistic} from "antd";
 import TopNav from "../../../components/TopNav";
 import Installment from "../../../model/installments/Installment";
 const { Option } = Select;
@@ -197,9 +197,10 @@ const SaleEntryComponentRaw = props => {
     removeSaleEntry,
     productPrices,
     saleEntries,
+		acceptCustomSellingPrice
   } = props;
 
-  const {getFieldDecorator, getFieldValue} = props.form;
+  const {getFieldDecorator} = props.form;
 
   const [selectedProductId, setSelectedProductId] = React.useState(
     saleEntry.product ? saleEntry.product.id : null
@@ -292,10 +293,35 @@ const SaleEntryComponentRaw = props => {
           label={`GH₵ ${product ? product.sellingPrice : 0}`}
           variant="outlined"
         />
-        <Chip
-          label={`GH₵ ${product ? product.sellingPrice * stateQuantity : 0}`}
-          style={{ marginLeft: "5px" }}
-        />
+				{getFieldDecorator('productSellingPrice', {
+					initialValue: saleEntry ? saleEntry.sellingPrice : product.sellingPrice,
+					rules: [{ required: true, message: 'Please enter selling price' }],
+				})(
+					<InputNumber
+						min={product ? product.sellingPrice : 0}
+						style={{
+							width: "80px"
+						}}
+						disabled={acceptCustomSellingPrice}
+						onChange={value => {
+							console.log("++++++++++++++++++++++++");
+							console.log("++++++++++++++++++++++++");
+							console.log(saleEntry.quantity);
+							console.log(stateQuantity);
+							console.log("++++++++++++++++++++++++");
+							console.log("++++++++++++++++++++++++");
+							updateSaleEntry({
+								sellingPrice: value || product.sellingPrice,
+								quantity: stateQuantity,
+								type: saleEntry.type,
+								total: product ? (value || product.sellingPrice) * stateQuantity : saleEntry.total,
+								productId: selectedProductId ? selectedProductId : null,
+								key: saleEntry.key,
+								product
+							});
+						}}
+					/>
+				)}
         <Chip
           label={`${productTotalCount.toFixed(2)} left`}
           style={{ marginLeft: "5px" }}
@@ -390,6 +416,10 @@ const SaleEntryComponentRaw = props => {
 					*/}
       </Grid>
       <Grid item>
+				<Chip
+					label={`GH₵ ${product ? product.sellingPrice * stateQuantity : 0}`}
+					style={{ marginRight: "5px" }}
+				/>
         <Button
           style={{ color: "red" }}
           onClick={() => removeSaleEntry(saleEntry.key)}
@@ -418,6 +448,8 @@ const CreateComponent = props => {
   } = props;
   const [salesTotal, setSalesTotal] = React.useState(0);
   const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+	const [acceptCustomSellingPrice, setAcceptCustomSellingPrice] = React.useState(false);
+	const [acceptCredit, setAcceptCredit] = React.useState(false);
   const [discount, setDiscount] = React.useState(0);
   const componentRef = useRef();
 
@@ -453,7 +485,7 @@ const CreateComponent = props => {
     salesEntries.forEach(se => {
       newSalesTotal += se.total;
     });
-    setSalesTotal(newSalesTotal.toFixed(2));
+    setSalesTotal(newSalesTotal ? newSalesTotal.toFixed(2) : newSalesTotal);
   };
 
   return (
@@ -574,6 +606,12 @@ const CreateComponent = props => {
 									onChange={value => setDiscount(value)}
 								/>
 							</div>
+							<div style={{marginBottom: '20px'}}>
+								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept credit</b>
+								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCredit} />
+								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept custom selling price</b>
+								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCustomSellingPrice} />
+							</div>
 							{salesEntries.map(saleEntry => (
 								<SaleEntryComponent
 									removeSaleEntry={removeSaleEntry}
@@ -584,6 +622,7 @@ const CreateComponent = props => {
 									database={database}
 									products={products}
 									productPrices={productPrices}
+									acceptCustomSellingPrice={acceptCustomSellingPrice}
 								/>
 							))}
 							{salesEntries.filter(
@@ -634,31 +673,34 @@ const CreateComponent = props => {
 														</div>
 													</Pane>
 												</Dialog>
-												<Button
-													shape="round"
-													icon="save"
-													size="large"
-													onClick={() => {
-														setSaleEntries(
-															salesEntries.filter(
-																se => se.sellingPrice && se.productId && se.quantity
-															)
-														);
+												<Row>
+													<Col span={8}/>
+													<Col span={8}>
+														<Button
+															onClick={() => {
+																setSaleEntries(
+																	salesEntries.filter(
+																		se => se.sellingPrice && se.productId && se.quantity
+																	)
+																);
 
-														createRecord({
-															salesEntries,
-															salesTotal,
-															selectedCustomer,
-															discount,
-															saleType: "invoice"
-														});
+																createRecord({
+																	salesEntries,
+																	salesTotal,
+																	selectedCustomer,
+																	discount,
+																	saleType: "invoice"
+																});
 
-														setOpen(false);
-														setState({ isShown: true });
-													}}
-												>
-													Save
-												</Button>
+																setOpen(false);
+																setState({ isShown: true });
+															}}
+														>
+															Save Invoice
+														</Button>
+													</Col>
+													<Col span={8} />
+												</Row>
 											</Pane>
 										)}
 									</Component>
@@ -700,6 +742,7 @@ const EditComponent = props => {
 	} = props;
 	const [open, setOpen] = React.useState(false);
 	const [acceptCredit, setAcceptCredit] = React.useState(false);
+	const [acceptCustomSellingPrice, setAcceptCustomSellingPrice] = React.useState(false);
 	const [count, setCount] = React.useState(0);
 	const [salesEntries, setSaleEntries] = React.useState(saleEntries.map(se => {
 	  return {
@@ -891,7 +934,6 @@ const EditComponent = props => {
 									style={{
 										marginLeft: "16px",
 										marginRight: "50px",
-										fontWeight: "normal"
 									}}
 								>
 									Cash received (GHS):
@@ -905,7 +947,7 @@ const EditComponent = props => {
 									onChange={value => setCashReceived(value)}
 								/>
 							</div>
-							<div  style={{ marginBottom: "40px"}}>
+							<div style={{ marginBottom: "20px"}}>
 								<b
 									style={{
 										marginLeft: "50px",
@@ -913,11 +955,14 @@ const EditComponent = props => {
 										fontWeight: "normal"
 									}}
 								>
-									Change (GHS):
+									<b>Change (GHS):</b>	<Chip style={{ fontSize: '20px', marginLeft: '60px'}} label={(cashReceived - (salesTotal - discount)).toFixed(2)} variant="outlined" />
 								</b>
-								<Chip label={(cashReceived - (salesTotal - discount)).toFixed(2)} variant="outlined" />
+							</div>
+							<div style={{ marginBottom: "40px"}}>
 								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept credit</b>
 								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCredit} />
+								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept custom selling price</b>
+								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCustomSellingPrice} />
 							</div>
 							{salesEntries.map(saleEntry => (
 								<SaleEntryComponent
@@ -929,6 +974,7 @@ const EditComponent = props => {
 									database={database}
 									products={products}
 									productPrices={productPrices}
+									acceptCustomSellingPrice={acceptCustomSellingPrice}
 								/>
 							))}
 							{salesEntries.filter(
