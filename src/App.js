@@ -6,7 +6,7 @@ import Login from "./screens/login/Login";
 import Control from "./screens/control/Control";
 import Sales from "./screens/salesScreens/sales/Sales";
 import Customers from "./screens/salesScreens/customers/Customers";
-import Deptors from "./screens/salesScreens/debtors/Deptors";
+import Debtors from "./screens/salesScreens/debtors/Debtors";
 import Products from "./screens/inventoryScreens/products/Products";
 import Categories from "./screens/inventoryScreens/categories/Categories";
 import Brands from "./screens/inventoryScreens/brands/Brands";
@@ -184,9 +184,20 @@ class App extends React.Component {
                   );
                 }}
               />
-              <Route path={`/${companyCode}/debtors`}>
-                <Deptors />
-              </Route>
+							<Route
+								path={`/${companyCode}/debtors`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Debtors | ${companyName}`);
+									return (
+										<Debtors
+											DrawerIcon={this.DrawerIcon}
+											parentLocation="Sales"
+											modelName="debtor"
+										/>
+									);
+								}}
+							/>
               <Route
                 path={`/${companyCode}/products`}
                 render={() => {

@@ -283,15 +283,26 @@ const Customers = props => {
             {company.name}
           </h3>
           <div id="nav-list">
-            <button className="nav-item" onClick={() => history.push("sales")}>
+            <Button className="nav-item" onClick={() => history.push("sales")}>
               Sales
-            </button>
-            <button
+            </Button>
+            <Button
               className="nav-item active"
               onClick={() => history.push("customers")}
             >
               Customers
-            </button>
+            </Button>
+						<Button className="nav-item"
+              onClick={() => history.push("debtors")}
+            >
+							Debtors
+						</Button>
+						<Button
+							className="nav-item"
+							onClick={() => history.push("dashboard")}
+						>
+							Dashboard
+						</Button>
           </div>
           <div className="bottom-area">
             <a onClick={() => history.push("products")}>

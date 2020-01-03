@@ -9,7 +9,29 @@ import expenseSchema from "./expenses/expenseSchema";
 import settingsSchema from "./settings/settingSchema";
 
 export default schemaMigrations({
-  migrations: [ {
+  migrations: [
+		{
+			toVersion: 4,
+			steps: [
+				addColumns({
+					table: 'sales',
+					columns: [
+						{ name: 'sales_total', type: 'number'},
+					],
+				})
+			]
+		},
+  	{
+		toVersion: 3,
+		steps: [
+			addColumns({
+				table: 'sales',
+				columns: [
+					{ name: 'arrears', type: 'number'},
+				],
+			})
+		]
+	},{
 		toVersion: 2,
 		steps: [
 			addColumns({

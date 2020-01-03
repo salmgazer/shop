@@ -15,7 +15,7 @@ import settingsSchema from "./settings/settingSchema";
 import installmentSchema from "./installments/installmentSchema";
 
 export default appSchema({
-  version: 2,
+  version: 4,
   tables: [
     tableSchema(companySchema),
     tableSchema(userSchema),

@@ -10,10 +10,6 @@ import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import capitalize from 'capitalize';
 import {
-	SideSheet,
-	TextInput,
-	Textarea,
-	Position,
 	Dialog,
 	Pane,
 	toaster, Avatar
@@ -648,13 +644,14 @@ const CreateComponent = props => {
 																se => se.sellingPrice && se.productId && se.quantity
 															)
 														);
-														createRecord(
+
+														createRecord({
 															salesEntries,
 															salesTotal,
 															selectedCustomer,
 															discount,
-															"invoice"
-														);
+															saleType: "invoice"
+														});
 
 														setOpen(false);
 														setState({ isShown: true });
@@ -665,86 +662,6 @@ const CreateComponent = props => {
 											</Pane>
 										)}
 									</Component>
-									{/*
-              <Component initialState={{ isShown: false }}>
-                {({ state, setState }) => (
-                  <Pane>
-                    <Dialog
-                      isShown={state.isShown}
-                      title="Sale"
-                      onCloseComplete={() => setState({ isShown: false })}
-                      hasFooter={false}
-                    >
-                      <Pane height={1800} width="1000px">
-                        <div>
-                          <ReactToPrint
-                            trigger={() => (
-                              <button
-                                style={{
-                                  fontSize: "15px",
-                                  backgroundColor: "orange",
-                                  color: "black",
-                                  padding: "10px",
-                                  width: "100px",
-                                  margin: "0 auto",
-                                  borderRadius: "5px",
-                                  bottom: 0
-                                }}
-                              >
-                                Print
-                              </button>
-                            )}
-                            content={() => componentRef.current}
-                          />
-                          <ComponentToPrint
-                            customers={customers}
-                            saleTotal={salesTotal}
-                            products={products}
-                            company={company}
-                            customer={selectedCustomer}
-                            saleEntries={salesEntries}
-                            discount={discount}
-                            ref={componentRef}
-                          />
-                        </div>
-                      </Pane>
-                    </Dialog>
-                    <Button
-                      size={"large"}
-                      style={{
-                        width: "200px",
-                        fontSize: "40px",
-                        height: "100px",
-                        float: "right",
-                        marginRight: "20px",
-                        marginBottom: "50px",
-                        borderRadius: "10px",
-                        backgroundColor: "orange",
-                        color: "white",
-                        padding: "10px"
-                      }}
-                      onClick={() => {
-                        setSaleEntries(
-                          salesEntries.filter(
-                            se => se.sellingPrice && se.productId && se.quantity
-                          )
-                        );
-                        createRecord(
-                          salesEntries,
-                          salesTotal,
-                          selectedCustomer,
-                          discount,
-                          "sale"
-                        );
-                        setState({ isShown: true });
-                      }}
-                    >
-                      Sell
-                    </Button>
-                  </Pane>
-                )}
-              </Component>
-              */}
 								</div>
 							) : (
 								""
@@ -845,15 +762,6 @@ const EditComponent = props => {
 			newSalesTotal += se.total;
 		});
 		setSalesTotal(newSalesTotal);
-
-		/*
-		await database.action(async () => {
-			const saleEntryToUpdate = await database.collections.get(SaleEntry.table).find(saleEntry.id);
-			await saleEntryToUpdate.update(aSaleEntry => {
-
-			});
-		});
-		*/
 	};
 
 
@@ -1168,94 +1076,6 @@ const EnhancedEditComponent = withDatabase(
 	}))(withRouter(EditComponent))
 );
 
-/*
-const EditComponent = props => {
-  const { row, modelName, keyFieldName, updateRecord } = props;
-  return (
-    <Component
-      initialState={{
-        isShown: false,
-        newSaleNotes: row.note || "",
-        newSalePhone: row.phone || ""
-      }}
-    >
-      {({ state, setState }) => (
-        <React.Fragment>
-          <SideSheet
-            isShown={state.isShown}
-            onCloseComplete={() => setState({ isShown: false })}
-          >
-            <div style={{ width: "80%", margin: "0 auto" }}>
-              <h3
-                style={{
-                  fontSize: "40px",
-                  fontWeight: "400",
-                  color: "#09d3ac"
-                }}
-              >
-                Update {modelName}
-              </h3>
-              <TextInput
-                required
-                name="phone"
-                value={state.newSalePhone}
-                onChange={e => setState({ newSalePhone: e.target.value })}
-                placeholder="Phone number of sale"
-                style={{
-                  marginBottom: "20px",
-                  fontSize: "25px",
-                  height: "50px"
-                }}
-              />
-              <Textarea
-                name="note"
-                value={state.newSaleNotes}
-                onChange={e => setState({ newSaleNotes: e.target.value })}
-                placeholder="Note about sale"
-                style={{ marginBottom: "20px", fontSize: "25px" }}
-              />
-              <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                <Button
-                  onClick={() => setState({ isShown: false })}
-                  intent="danger"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    updateRecord({
-                      id: row[keyFieldName],
-                      name: state.newSaleName,
-                      note: state.newSaleNotes,
-                      phone: state.newSalePhone
-                    });
-                    setState({ isShown: false });
-                  }}
-                  intent="success"
-                  style={{ marginLeft: "20px" }}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          </SideSheet>
-          {
-            row.type === 'invoice' ?
-							<Icon
-								type="edit"
-								onClick={() => setState({ isShown: true })}
-								className="hand-pointer"
-								size={20}
-								color="muted"
-							/> : ''
-          }
-        </React.Fragment>
-      )}
-    </Component>
-  );
-};
-*/
-
 const Sales = props => {
   const {
     user,
@@ -1264,7 +1084,6 @@ const Sales = props => {
     users,
     database,
     history,
-    parentLocation,
     products,
     search,
     DrawerIcon,
@@ -1277,21 +1096,20 @@ const Sales = props => {
   const productsCollection = database.collections.get(Product.table);
 	const installmentsCollection = database.collections.get(Installment.table);
 
-  const createRecord = async (
-  	saleEntries,
-		salesTotal,
-		selectedCustomer,
-		discount,
-		saleType,
-		cashReceived
-		) => {
-			const currentCustomer =
-				customers.find(c => c.id === selectedCustomer) || null;
+  const createRecord = async (options) => {
+  	const { salesEntries, salesTotal, selectedCustomer, discount, saleType } = options;
+
+			const currentCustomer = customers.find(c => c.id === selectedCustomer) || null;
+			let totalSales = 0;
+			salesEntries.forEach(se => {
+				totalSales += (se.sellingPrice * se.quantity);
+			});
 
 			await database.action(async () => {
 				const newSale = await salesCollection.create(sale => {
 					sale.discount = discount;
 					sale.type = saleType;
+					sale.salesTotal = totalSales - discount;
 					sale.companyId = company.id;
 					sale.createdBy.set(user);
 					if (currentCustomer) {
@@ -1300,9 +1118,8 @@ const Sales = props => {
 				});
 
 
-
       	if (newSale && newSale.id) {
-        	saleEntries.forEach(async saleEntry => {
+        	salesEntries.forEach(async saleEntry => {
 						const product = await productsCollection.find(saleEntry.productId);
 						const currentProductPrices = await product.productPrices.fetch();
 
@@ -1327,18 +1144,10 @@ const Sales = props => {
 												price: pp.price,
 												quantity: pp.quantity - newProductPriceQuantity
 											});
-
-											/*
-											await database.action(async () => {
-												await pp.update(aPp => {
-													aPp.quantity = newProductPriceQuantity;
-												});
-											});
-											*/
 										}
 
 										await database.action(async () => {
-											const createdSE = await saleEntriesCollection.create(newSaleEntry => {
+											const createdInvoice = await saleEntriesCollection.create(newSaleEntry => {
 												newSaleEntry.quantity = saleEntry.quantity;
 												newSaleEntry.sellingPrice = saleEntry.sellingPrice;
 												newSaleEntry.type = saleEntry.type;
@@ -1348,9 +1157,7 @@ const Sales = props => {
 												newSaleEntry.sale.set(newSale);
 												newSaleEntry.costPriceAllocations = costPriceAllocations;
 											});
-											console.log("!!!!!!!!!!!!!!!!!!!");
-											console.log(createdSE);
-											console.log("!!!!!!!!!!!!!!!!!!!");
+											console.info(`Successfully created Invoice ${createdInvoice.id}`);
 										});
 									}
 								}
@@ -1375,6 +1182,7 @@ const Sales = props => {
 				totalPaid += ins.amount;
 			});
 
+			const arrears = salesTotal - (totalPaid + cashReceived + discount);
 			let paymentStatus = 'unpaid';
 			if ((totalPaid + cashReceived + discount) >= salesTotal) {
 				paymentStatus = 'full payment'
@@ -1382,30 +1190,9 @@ const Sales = props => {
 				paymentStatus = 'part payment';
 			}
 
-			console.log(paymentStatus);
-			console.log(paymentStatus);
-			console.log(paymentStatus);
-			console.log(totalPaid);
-			console.log(totalPaid);
-			console.log(totalPaid);
-			console.log(totalPaid + cashReceived);
-			console.log(totalPaid + cashReceived);
-			console.log(totalPaid + cashReceived);
-			console.log(cashReceived);
-			console.log(cashReceived);
-			console.log(cashReceived);
-
 			const updatedSale = await salesCollection.find(sale.id);
 			console.log(updatedSale);
 			console.log(saleType);
-			await updatedSale.update(aSale => {
-				aSale.discount = discount;
-				console.log(aSale);
-				aSale.type = saleType;
-				aSale.paymentStatus = paymentStatus;
-				aSale.createdBy.set(user);
-				aSale.customer.set(currentCustomer);
-			});
 
 			if (saleType === 'sale') {
 				if (cashReceived < (salesTotal - discount - totalPaid) && acceptCredit === false) {
@@ -1430,6 +1217,17 @@ const Sales = props => {
 					});
 				}
 			}
+
+			await updatedSale.update(aSale => {
+				aSale.discount = discount;
+				console.log(aSale);
+				aSale.type = saleType;
+				aSale.paymentStatus = paymentStatus;
+				aSale.arrears = arrears;
+				aSale.salesTotal = salesTotal;
+				aSale.createdBy.set(user);
+				aSale.customer.set(currentCustomer);
+			});
 
 
 			const oldSaleEntries = await saleEntriesCollection.query(Q.where('sale_id', sale.id)).fetch();
@@ -1520,24 +1318,29 @@ const Sales = props => {
             {company.name}
           </h3>
           <div id="nav-list">
-            <button
+            <Button
               className="nav-item active"
-              onClick={() => history.push("sales")}
             >
               Sales
-            </button>
-            <button
+            </Button>
+            <Button
               className="nav-item"
               onClick={() => history.push("customers")}
             >
               Customers
-            </button>
-            <button
+            </Button>
+						<Button
+							className="nav-item"
+							onClick={() => history.push("debtors")}
+						>
+							Debtors
+						</Button>
+            <Button
               className="nav-item"
               onClick={() => history.push("dashboard")}
             >
               Dashboard
-            </button>
+            </Button>
           </div>
           <div className="bottom-area">
             <a onClick={() => history.push("products")}>

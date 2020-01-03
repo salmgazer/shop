@@ -4,6 +4,7 @@ import {field, date, readonly, json, relation, lazy} from '@nozbe/watermelondb/d
 export default class Customer extends Model {
 	static table = 'customers';
 	static deletable = false;
+	static editable = true;
 
 	static associations = {
 		users: { type: 'belongs_to', key: 'created_by' },

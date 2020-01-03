@@ -15,6 +15,8 @@ export default class Sale extends Model {
 	@field('note') note;
 	@field('type') type; // invoice or sale
 	@field('discount') discount;
+	@field('arrears') arrears;
+	@field('sales_total') salesTotal;
 	@relation('customers', 'customer_id') customer;
 	@field('company_id') companyId;
 	@field('customer_id') customerId;

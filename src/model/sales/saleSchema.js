@@ -6,6 +6,8 @@ const salesSchema = {
 		{ name: 'payment_status', type: 'string'},
 		{ name: 'customer_id', type: 'string' },
 		{ name: 'discount', type: 'number' },
+		{ name: 'arrears',  type: 'number' },
+		{ name: 'sales_total',  type: 'number' },
 		{ name: 'company_id', type: 'string' },
 		{ name: 'created_by', type: 'string' },
 		{ name: 'created_at', type: 'number' },
