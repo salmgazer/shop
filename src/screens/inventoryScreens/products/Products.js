@@ -424,7 +424,7 @@ const EditComponentRaw = (props) => {
 																			name="quantity"
 																			value={state.quantity}
 																			onChange={(value) => {
-																				setState({quantity: parseFloat(value) || productPrice.quantity});
+																				setState({quantity: parseFloat(value).toFixed(2) || productPrice.quantity});
 																			}}
 																			placeholder="Quantity"
 																		/>

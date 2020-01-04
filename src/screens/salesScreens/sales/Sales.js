@@ -302,7 +302,7 @@ const SaleEntryComponentRaw = props => {
 						style={{
 							width: "80px"
 						}}
-						disabled={acceptCustomSellingPrice}
+						disabled={!acceptCustomSellingPrice}
 						onChange={value => {
 							console.log("++++++++++++++++++++++++");
 							console.log("++++++++++++++++++++++++");

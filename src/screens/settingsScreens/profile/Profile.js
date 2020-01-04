@@ -7,9 +7,8 @@ import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
-import {Input} from 'antd';
 import User from "../../../model/users/User";
-import {message, Icon} from 'antd';
+import { message, Icon,Button, Input, Card, Row, Col, PageHeader, Switch } from 'antd';
 
 
 
@@ -28,7 +27,8 @@ class Profile extends React.Component{
 			confirmNewPassword: '',
 			address: user.address,
 			phone: user.phone,
-			email: user.email
+			email: user.email,
+			disableForm: true
 		};
 	}
 
@@ -42,8 +42,8 @@ class Profile extends React.Component{
 			modelName
 		} = this.props;
 
-		const {name, username, phone, email, address, currentPassword, newPassword, confirmNewPassword} = this.state;
-
+		const {name, username, phone, email, address, currentPassword, newPassword, confirmNewPassword, disableForm} = this.state;
+		console.log(disableForm);
 
 		const saveUser = async () => {
 			// validate
@@ -92,12 +92,15 @@ class Profile extends React.Component{
 							{company.name}
 						</h3>
 						<div id="nav-list">
-							<button className="nav-item" onClick={() => history.push("sync")}>
+							<Button className="nav-item" onClick={() => history.push("sync")}>
 								Sync
-							</button>
-							<button className="nav-item active">
+							</Button>
+							<Button className="nav-item active">
 								Profile
-							</button>
+							</Button>
+							<Button className="nav-item" onClick={() => history.push("team")}>
+								Team
+							</Button>
 						</div>
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>
@@ -107,79 +110,119 @@ class Profile extends React.Component{
 						</div>
 					</div>
 					<div id="main-body">
-
-						<div style={{ width: '300px' }}>
-							<div style={{marginBottom: '20px'}}>
-								Name
-								<Input
-									placeholder="Enter name"
-									value={name}
-									onChange={e => this.setState({ name: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Username
-								<Input
-									placeholder="Enter username"
-									value={username}
-									onChange={e => this.setState({ username: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Phone
-								<Input
-									placeholder="Enter phone"
-									value={phone}
-									onChange={e => this.setState({ phone: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Email
-								<Input
-									placeholder="Email"
-									value={email}
-									onChange={e => this.setState({ email: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Address
-								<Input
-									placeholder="Enter address"
-									value={address}
-									onChange={e => this.setState({ address : e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Current password *
-								<Input
-									placeholder="Enter current password"
-									onChange={e => this.setState({ currentPassword: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								New password
-								<Input
-									placeholder="Enter new password"
-									onChange={e => this.setState({ newPassword: e.target.value })}
-								/>
-							</div>
-							<div style={{marginBottom: '20px'}}>
-								Confirm new password
-								<Input
-									placeholder="Confirm new password"
-									onChange={e => this.setState({ confirmNewPassword: e.target.value })}
-								/>
-							</div>
-
-						</div>
-						<div id="bottom-area">
-							<button
-								className="sell-btn"
-								onClick={saveUser}
-							>
-								Save
-							</button>
-						</div>
+						<PageHeader
+							style={{
+								border: '5px solid white',
+								width: '95%',
+							}}
+							title="Your profile"
+							subTitle="You can update your profile"
+							extra={[
+								<div key="123">
+									<b style={{marginRight: '10px'}}>Edit</b>
+									<Switch
+										checkedChildren={<Icon type="check" />}
+										unCheckedChildren={<Icon type="close" />}
+										onChange={() => this.setState({ disableForm: !disableForm})}
+										defaultChecked={!disableForm}
+									/>
+								</div>
+							]}
+						/>
+						<Card style={{width: '95%', border: 'none'}}>
+							<Row gutter={40}>
+								<Col span={12}>
+									<div style={{marginBottom: '20px'}}>
+										Name
+										<Input
+											disabled={disableForm}
+											placeholder="Enter name"
+											value={name}
+											onChange={e => this.setState({ name: e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										Username
+										<Input
+											disabled={disableForm}
+											placeholder="Enter username"
+											value={username}
+											onChange={e => this.setState({ username: e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										Phone
+										<Input
+											disabled={disableForm}
+											placeholder="Enter phone"
+											value={phone}
+											onChange={e => this.setState({ phone: e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										Email
+										<Input
+											disabled={disableForm}
+											placeholder="Email"
+											value={email}
+											onChange={e => this.setState({ email: e.target.value })}
+										/>
+									</div>
+								</Col>
+								<Col span={12}>
+									<div style={{marginBottom: '20px'}}>
+										Address
+										<Input
+											disabled={disableForm}
+											placeholder="Enter address"
+											value={address}
+											onChange={e => this.setState({ address : e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										Current password *
+										<Input
+											disabled={disableForm}
+											placeholder="Enter current password"
+											onChange={e => this.setState({ currentPassword: e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										New password
+										<Input
+											disabled={disableForm}
+											placeholder="Enter new password"
+											onChange={e => this.setState({ newPassword: e.target.value })}
+										/>
+									</div>
+									<div style={{marginBottom: '20px'}}>
+										Confirm new password
+										<Input
+											disabled={disableForm}
+											placeholder="Confirm new password"
+											onChange={e => this.setState({ confirmNewPassword: e.target.value })}
+										/>
+									</div>
+								</Col>
+							</Row>
+							<Row>
+								<Button
+									disabled={disableForm}
+									shape='round'
+									style={{
+										fontSize: '30px',
+										backgroundColor: 'orange',
+										border: "2px solid orange",
+										margin: "0 auto",
+										color: "white"
+									}}
+									className="sell-btn"
+									onClick={saveUser}
+								>
+									Save
+								</Button>
+							</Row>
+						</Card>
 					</div>
 				</div>
 			</div>

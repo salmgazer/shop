@@ -107,7 +107,7 @@ const Login = (props) => {
 						}
 						if (userCompany && userCompany.userId === user.id && userCompany.companyId === company.id) {
 							toaster.success(`Successfully logged in ${user.name}`);
-							MyLocal.setSession(user, company);
+							MyLocal.setSession(user, company, userCompany);
 							history.push('/');
 							// window.location.reload();
 							//code before the pause

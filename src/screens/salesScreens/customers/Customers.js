@@ -211,12 +211,11 @@ const EditComponent = props => {
             </div>
           </SideSheet>
           <Icon
-            icon="edit"
+            type="edit"
             onClick={() => setState({ isShown: true })}
             className="hand-pointer"
             size={20}
             color="muted"
-            marginRight={20}
           />
         </React.Fragment>
       )}
@@ -306,7 +305,7 @@ const Customers = props => {
           </div>
           <div className="bottom-area">
             <a onClick={() => history.push("products")}>
-              <Icon icon="arrow-left" marginRight={16} />
+              <Icon type="arrow-left"/>
               Jump to Inventory
             </a>
           </div>

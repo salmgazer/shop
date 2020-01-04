@@ -85,12 +85,15 @@ class Sync extends React.Component{
 							{company.name}
 						</h3>
 						<div id="nav-list">
-							<button className="nav-item active">
+							<Button className="nav-item active">
 								Sync
-							</button>
-							<button className="nav-item" onClick={() => history.push("profile")}>
+							</Button>
+							<Button className="nav-item" onClick={() => history.push("profile")}>
 								Profile
-							</button>
+							</Button>
+							<Button className="nav-item" onClick={() => history.push("team")}>
+								Team
+							</Button>
 						</div>
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>

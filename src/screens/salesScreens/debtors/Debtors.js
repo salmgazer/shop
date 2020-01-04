@@ -9,7 +9,6 @@ import withObservables from "@nozbe/with-observables";
 import Customer from "../../../model/customers/Customer";
 import Sale from "../../../model/sales/Sale";
 import { Q } from "@nozbe/watermelondb";
-import Installment from "../../../model/installments/Installment";
 import TopNav from "../../../components/TopNav";
 import Company from "../../../model/companies/Company";
 import MyLocal from "../../../services/MyLocal";
@@ -18,7 +17,7 @@ import {Icon, Tag, Select, Button} from 'antd';
 const {Option} = Select;
 
 const CardListItem = props => {
-	const { sales, installments, customer } = props;
+	const { sales, customer } = props;
 
 	let totalArrears = 0;
 	sales.filter(s => s.customerId === customer.id).forEach(sale => totalArrears += sale.arrears);
@@ -47,7 +46,6 @@ const CardListItem = props => {
 
 const EnhancedCardListItem = withDatabase(
 	withObservables([], ({ database, sale }) => ({
-		installments: database.collections.get(Installment.table).query(Q.where('sale_id', sale.id)).fetch(),
 		customer: database.collections.get(Customer.table).findAndObserve(sale.customerId)
 	}))(CardListItem)
 );
@@ -115,7 +113,7 @@ class Debtors extends React.Component {
 						>
 							<Option value="all">All</Option>
 							{
-								filteredCustomers.map(c => <Option value={c.id}>{c.name}</Option>)
+								filteredCustomers.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)
 							}
 						</Select>
 					</Grid>
@@ -131,11 +129,11 @@ class Debtors extends React.Component {
 				<div className="list-div">
 					<div id="list-area">
 						{filteredSales.map(sale => (
-							<div key={sale.id} className="card-list-item">
+							<div key={sale.customerId} className="card-list-item">
 								{EnhancedCardListItem({
 									selectedCustomerId,
 									sale,
-									sales: filteredSales
+									sales
 								})}
 							</div>
 						))}
@@ -205,7 +203,7 @@ const Parent = props => {
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push("products")}>
-							<Icon type="arrow-left" marginRight={16} />
+							<Icon type="arrow-left" />
 							Jump to Inventory
 						</a>
 					</div>

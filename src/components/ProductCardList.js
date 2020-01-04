@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import { Dialog, Pane, Combobox, SearchInput } from "evergreen-ui";
-import { Col, Drawer, Icon, Row, Modal, Button } from "antd";
+import { Col, Drawer, Icon, Row, Modal, Button, Tag} from "antd";
 import Grid from "@material-ui/core/Grid";
 import Component from "@reactions/component";
 import capitalize from "capitalize";
@@ -172,19 +172,9 @@ const CardListItem = props => {
 			</Grid>
 			<Grid item xs={4} style={{ marginTop: "7px" }}>
 				<div id="name-column">{entry.name}</div>
-				<div style={{ color: "#7B8B9A", fontSize: "12px" }}>
-					{entry.notes || entry.description || entry.phone}
-				</div>
 			</Grid>
 			<Grid item xs={2} style={{ marginTop: "16px" }}>
-				<div style={{ color: "#7B8B9A", fontSize: "14px" }}>
-					{
-						entry.createdAt
-							.toLocaleString()
-							.toString()
-							.split(",")[0]
-					}
-				</div>
+				<Tag color={totalQuantity < 5 ? 'red' : 'green'}>{totalQuantity.toFixed(2)} left</Tag>
 			</Grid>
 			<Grid item xs={3} style={{ marginTop: "16px" }}>
 				<div style={{ color: "#7B8B9A", fontSize: "14px" }}>{user.name}</div>

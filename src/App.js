@@ -14,6 +14,7 @@ import Expenses from "./screens/expenditureScreens/expenditure/Expenses";
 import ExpenseCategories from "./screens/expenditureScreens/categories/Categories";
 import Settings from "./screens/settingsScreens/sync/Sync";
 import Profile from "./screens/settingsScreens/profile/Profile";
+import Team from "./screens/settingsScreens/team/Team";
 import { toaster } from "evergreen-ui";
 import {
   HashRouter as Router,
@@ -299,6 +300,16 @@ class App extends React.Component {
 									this.setTitle(`Sync | ${companyName}`);
 									return (
 										<Settings DrawerIcon={this.DrawerIcon} modelName="settings" />
+									);
+								}}
+							/>
+							<Route
+								path={`/${companyCode}/team`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Team | ${companyName}`);
+									return (
+										<Team DrawerIcon={this.DrawerIcon} modelName="team" />
 									);
 								}}
 							/>

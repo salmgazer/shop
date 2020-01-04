@@ -473,10 +473,10 @@ const CardListItem = props => {
 				{isSale() ?
 					<div>
 						<div id="name-column" style={{marginTop: '-10px'}}>
-							<Tag color="#87d068">GHS {totalAmountPaid}</Tag>
+							<Tag color="green">GHS {totalAmountPaid}</Tag>
 						</div>
 						<div id="name-column" style={{marginTop: '5px'}}>
-							<Tag color="#f5222d">GHS {entry.arrears}</Tag>
+							<Tag color="red">GHS {entry.arrears}</Tag>
 						</div>
 					</div> : ''
 				}

@@ -32,5 +32,5 @@ export default class Product extends Model {
 
 	productPrices = this.collections
 		.get('product_prices')
-		.query(Q.where('product_id', this.id), Q.where('quantity', Q.gt(0)));
+		.query(Q.where('product_id', this.id));
 }
