@@ -13,8 +13,7 @@ import User from "../../../model/users/User";
 import {Icon, Tag, Select, Button, Drawer, Row, Col, Switch, message} from 'antd';
 import UserCompany from "../../../model/userCompanies/UserCompany";
 import Component from "@reactions/component";
-import {Combobox, SideSheet, Textarea, TextInput, toaster} from "evergreen-ui";
-import SyncService from "../../../services/SyncService";
+import {Combobox, SideSheet, TextInput, toaster} from "evergreen-ui";
 import capitalize from "capitalize";
 import Chip from "@material-ui/core/Chip/Chip";
 const {Option} = Select;
@@ -475,7 +474,11 @@ class Team extends React.Component {
 					</div>
 				</div>
 				<div id="bottom-area">
-					<CreateComponent createRecord={createRecord} />
+					{
+						MyLocal.userRole === 'owner' ?
+							<CreateComponent createRecord={createRecord} />
+							: ''
+					}
 				</div>
 			</div>
 		);
@@ -513,7 +516,7 @@ const Parent = props => {
 		<div>
 			<TopNav user={user} />
 			<div id="main-area">
-				{<DrawerIcon />}
+				{/*<DrawerIcon />*/}
 				<div id="side-nav">
 					<h3 id="company" onClick={() => history.push("home")}>
 						{company.name}
@@ -534,8 +537,16 @@ const Parent = props => {
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push("sales")}>
-							<Icon type="arrow-left" />
-							Jump to Sales
+							<Icon type="arrow-left"/>
+							&nbsp; Sales
+						</a><br/><br/>
+						<a onClick={() => history.push("products")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Inventory
+						</a><br/><br/>
+						<a onClick={() => history.push("expenses")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Expenditure
 						</a>
 					</div>
 				</div>

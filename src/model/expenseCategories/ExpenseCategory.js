@@ -8,9 +8,9 @@ import {
 
 export default class ExpenseCategory extends Model {
   static table = "expense_categories";
+	static deletable = false;
 
   static displayName = "Expense Categories";
-  static deletable = true;
   static searchable = true;
 
   static associations = {

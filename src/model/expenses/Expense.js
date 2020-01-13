@@ -9,8 +9,7 @@ import {
 
 export default class Expense extends Model {
   static table = "expenses";
-
-  static deletable = true;
+  static deletable = false;
 
   static displayName = "Expense";
 

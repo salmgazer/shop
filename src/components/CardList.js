@@ -15,7 +15,7 @@ import "date-fns";
 import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from "@material-ui/core/Chip";
-import {Row, Col, Drawer, Icon, Button} from 'antd';
+import {Row, Col, Drawer, Icon, Button, Empty, Divider} from 'antd';
 
 const CardListItem = props => {
   const {
@@ -41,65 +41,57 @@ const CardListItem = props => {
           {({ state, setState }) => (
             <React.Fragment>
 							<Drawer
-								title={`Details of ${modelName}`}
+								title={`Details of ${capitalize(modelName).replace('_', ' ')}`}
 								width={720}
 								onClose={() => setState({ isShown: false })}
 								visible={state.isShown}
 								bodyStyle={{ paddingBottom: 80 }}
 							>
-								{fieldNames.map(field => {
-									let value = entry[field.name];
-									if (typeof value === "object") {
-										if (value instanceof Date) {
-											value = value.toLocaleString().split(",")[0];
-										} else if (field.name === "createdBy") {
-											value = createdBy ? createdBy.name : "";
-										}
-									}
-									return (
-										<Row gutter={16} key={field.name}>
-											<Col span={12}>
-												<h5
-													style={{ fontSize: "20px", fontWeight: "lighter" }}
-													key={field.name}
-												>
-													<b style={{ fontWeight: "400" }}>
-														{capitalize(field.label)}
-													</b>
-													: {<Chip label={value} variant="outlined" /> || ""}
-												</h5>
-                      </Col>
-										</Row>
-                  );
-								})}
-								<div
-									style={{
-										position: 'absolute',
-										right: 0,
-										bottom: 0,
-										width: '100%',
-										borderTop: '1px solid #e9e9e9',
-										padding: '10px 16px',
-										background: '#fff',
-										textAlign: 'right',
-									}}
-								>
-									<EditComponent
-										row={entry}
-										modelName={modelName}
-										updateRecord={updateRecord}
-										displayName={displayName}
-										keyFieldName={keyFieldName}
-										expenseCategories={expenseCategories}
-									/>
-									<Button
-                    type='danger'
-                    onClick={() => setState({ isShown: false })}
-                    style={{ marginLeft: 20 }}
-                  >
-										Close
-									</Button>
-								</div>
+                <div style={{ width: "90%", margin: "0 auto" }}>
+                  {fieldNames.map(field => {
+                    let value = entry[field.name];
+                    if (typeof value === "object") {
+                      if (value instanceof Date) {
+                        value = value.toLocaleString().split(",")[0];
+                      } else if (field.name === "createdBy") {
+                        value = createdBy ? createdBy.name : "";
+                      }
+                    }
+                    return (
+                      <Row gutter={16} key={field.name}>
+                        <Col span={12}>
+                          <h5
+                            style={{ fontSize: "20px", fontWeight: "lighter" }}
+                            key={field.name}
+                          >
+                            <b style={{ fontWeight: "400" }}>
+                              {capitalize(field.label)}
+                            </b>
+                            : {<Chip label={value} variant="outlined" /> || ""}
+                          </h5>
+                        </Col>
+                      </Row>
+                    );
+                  })}
+									<Divider dashed />
+									<div style={{ margin: "0 auto", marginTop: "20px" }}>
+										<Button
+                      style={{marginRight: '30px'}}
+											type='danger'
+											onClick={() => setState({ isShown: false })}
+										>
+											Close
+										</Button>
+										<EditComponent
+											row={entry}
+											modelName={modelName}
+											updateRecord={updateRecord}
+											displayName={displayName}
+											keyFieldName={keyFieldName}
+											expenseCategories={expenseCategories}
+										/>
+									</div>
+                </div>
 							</Drawer>
               <Button
                 icon="eye-open"
@@ -230,12 +222,25 @@ class CardList extends React.Component {
           spacing={1}
           style={{
             marginBottom: "15px",
-            width: "85%",
+            width: "90%",
             marginRight: "50px",
             float: "right"
           }}
         >
-          <Grid item xs={2}></Grid>
+					<Grid item xs={2}>
+						<div style={{
+							paddingLeft: '20px',
+							paddingRight: '20px',
+							paddingTop: '5px',
+							paddingBottom: '5px',
+							backgroundColor: 'white',
+							borderRadius: '5px',
+							fontWeight: 'bold',
+              marginLeft: '-27px'
+						}}>
+              Count: {entries.length}
+						</div>
+					</Grid>
           <Grid
             item
             xs={3}
@@ -286,7 +291,11 @@ class CardList extends React.Component {
         </Grid>
         <div className="list-div">
           <Grid container spacing={1} id="list-area">
-            {entries.map(entry => (
+            {entries.length === 0 ?
+              <Empty style={{
+                margin: '0 auto'
+              }}/>
+              : entries.map(entry => (
               <div key={entry.id} className="card-list-item">
                 {EnhancedCardListItem({
                   entry,

@@ -39,6 +39,8 @@
         margin-left: auto;
         margin-right: auto;
         text-decoration: none;
+        width: 100% !important;
+        display: inline-block;
         color: #09d3ac;
         font-weight: bold;
         background-color: white;
@@ -56,7 +58,7 @@
       border: 4px solid #09d3ac;
       color: #09d3ac;
       width: 100%;
-      padding: 20px;
+      padding: 10px 10px 10px 20px;
       font-size: 30px;
       font-weight: normal;
       text-align: center;
@@ -66,7 +68,7 @@
       }
     }
     #nav-list {
-      margin-top: 40px;
+      margin-top: 30px;
       .nav-item {
         color: #09d3ac;
         background-color: white;
@@ -124,8 +126,10 @@
           .card-list-item-view-button {
             border-radius: 2px !important;
             background-image: none !important;
-            padding-right: 30px !important;
-            padding-left: 30px !important;
+            padding-right: 5px !important;
+            padding-left: 0px !important;
+            text-align: center;
+            font-size: 13px;
             &:hover {
               background-color: #09d3ac;
               color: white;
@@ -177,6 +181,19 @@
   }
 }
 
+.create-avatar-small {
+  margin-left: 30px !important;
+  margin-bottom: -10px;
+  cursor: pointer;
+  background-color: #1890ff !important;
+  box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.2);
+  &:hover {
+    background-color: orange !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
+
 .sell-btn {
   position: fixed;
   bottom: 0;
@@ -198,6 +215,11 @@
     background-color: white;
     border: 4px solid orange;
   }
+}
+
+.sub-name {
+  color: darkgrey;
+  font-size: 14px;
 }
 
 /* Special */

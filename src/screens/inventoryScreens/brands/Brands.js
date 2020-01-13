@@ -7,13 +7,14 @@ import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
-import {Icon, Button, Input, Form, Row, Col, Drawer, message} from 'antd';
+import {Icon, Button, Input, Form, Row, Col, Drawer, message, Divider} from 'antd';
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import Brand from "../../../model/brand/Brand";
 import TopNav from "../../../components/TopNav";
 import {Avatar, FilePicker} from "evergreen-ui";
+import UserCompany from "../../../model/userCompanies/UserCompany";
 
 
 const fieldNames = [
@@ -95,34 +96,22 @@ const CreateComponentRaw = props => {
 								/>
 							</Row>
 						</Form>
-						<div
-							style={{
-								position: 'absolute',
-								right: 0,
-								bottom: 0,
-								width: '100%',
-								borderTop: '1px solid #e9e9e9',
-								padding: '10px 16px',
-								background: '#fff',
-								textAlign: 'right',
-							}}
-						>
-							<Button
-								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
-								type='danger'
-							>
-								Cancel
-							</Button>
-							<Button
-								onClick={async () => {
-									await createRecord({name: getFieldValue('name'), notes: getFieldValue('notes') });
-									setState({ isShown: false })
-								}}
-								type="primary"
-							>
-								Save
-							</Button>
-						</div>
+            <Divider dashed />
+            <Button
+              onClick={() => setState({ isShown: false })} style={{ marginRight: '20px' }}
+              type='danger'
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await createRecord({name: getFieldValue('name'), notes: getFieldValue('notes') });
+                setState({ isShown: false })
+              }}
+              type="primary"
+            >
+              Save
+            </Button>
 					</Drawer>
 					<Avatar
 						className="create-avatar"
@@ -185,34 +174,22 @@ const EditComponentRaw = props => {
 								</Col>
 							</Row>
 						</Form>
-						<div
-							style={{
-								position: 'absolute',
-								right: 0,
-								bottom: 0,
-								width: '100%',
-								borderTop: '1px solid #e9e9e9',
-								padding: '10px 16px',
-								background: '#fff',
-								textAlign: 'right',
-							}}
-						>
-							<Button
-                onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
-                type='danger'
-              >
-								Cancel
-							</Button>
-							<Button
-                onClick={async () => {
-                  await updateRecord({id: row.id, name: getFieldValue('name'), notes: getFieldValue('notes') });
-                  setState({ isShown: false })
-								}}
-                type="primary"
-              >
-								Save
-							</Button>
-						</div>
+            <Divider dashed/>
+            <Button
+              onClick={() => setState({ isShown: false })} style={{ marginRight: '20px' }}
+              type='danger'
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                await updateRecord({id: row.id, name: getFieldValue('name'), notes: getFieldValue('notes') });
+                setState({ isShown: false })
+              }}
+              type="primary"
+            >
+              Save
+            </Button>
 					</Drawer>
           <Icon
             type="edit"
@@ -290,7 +267,7 @@ const Brands = props => {
     <div>
       <TopNav user={user} />
       <div id="main-area">
-        {<DrawerIcon />}
+        {/*<DrawerIcon />*/}
         <div id="side-nav">
           <h3 id="company" onClick={() => history.push("home")}>
             {company.name}
@@ -315,12 +292,16 @@ const Brands = props => {
               Brands
             </button>
           </div>
-          <div className="bottom-area" style={{margin: 'O auto'}}>
-            <a onClick={() => history.push("sales")}>
-              <Icon type="arrow-left"/>
-              Jump to Sales
-            </a>
-          </div>
+					<div className="bottom-area">
+						<a onClick={() => history.push("sales")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Sales
+						</a><br/><br/>
+						<a onClick={() => history.push("expenses")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Expenditure
+						</a>
+					</div>
         </div>
         <div id="main-body">
           <div>
@@ -364,7 +345,7 @@ const EnhancedBrands = withDatabase(
     user: database.collections.get("users").find(MyLocal.userId),
     users: database.collections
       .get("users")
-      .query()
+			.query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
       .observe()
   }))(withRouter(Brands))
 );

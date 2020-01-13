@@ -29,6 +29,7 @@ const fieldNames = [
   { name: "phone", label: "Phone", type: "string" },
   { name: "address", label: "Address", type: "string" },
   { name: "status", label: "Status", type: "string" },
+  { name: "password", label: "Password", type: "string" },
   { name: "createdAt", label: "Created", type: "string" },
   { name: "updatedAt", label: "Updated", type: "string" }
 ];

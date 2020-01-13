@@ -12,7 +12,7 @@ import {
 	Avatar,
 	// eslint-disable-next-line import/no-unresolved
 } from 'evergreen-ui';
-import {Icon, Form, message,Select, Row, Col, Input, Drawer, InputNumber, Modal, Button} from 'antd';
+import {Icon, Form, message,Select, Row, Col, Input, Drawer, InputNumber, Modal, Button, Divider} from 'antd';
 import ProductCardList from "../../../components/ProductCardList";
 import MyLocal from "../../../services/MyLocal";
 import Product from "../../../model/products/Product";
@@ -76,7 +76,7 @@ const CreateComponentRaw = (props) => {
 								</Col>
 							</Row>
 							<Row gutter={16}>
-								<Col span={10}>
+								<Col span={8}>
 									<Form.Item label="Cost Price (GHS)">
 										{getFieldDecorator('costPrice', {
 											rules: [{ required: true, message: 'Please enter cost price' }],
@@ -85,12 +85,21 @@ const CreateComponentRaw = (props) => {
 										)}
 									</Form.Item>
 								</Col>
-								<Col span={10}>
+								<Col span={8}>
 									<Form.Item label="Selling Price (GHS)">
 										{getFieldDecorator('sellingPrice', {
 											rules: [{ required: true, message: 'Please enter selling price' }],
 										})(
 											<InputNumber style={{ width: 200 }} placeholder="Enter selling price" />
+										)}
+									</Form.Item>
+								</Col>
+								<Col span={8}>
+									<Form.Item label="Quantity">
+										{getFieldDecorator('quantity', {
+											rules: [{ required: true, message: 'Please enter quantity'}],
+										})(
+											<InputNumber style={{ width: 200 }} placeholder="Enter quantity" />
 										)}
 									</Form.Item>
 								</Col>
@@ -202,8 +211,8 @@ const CreateComponentRaw = (props) => {
 										message.error('Selling price cannot be smaller than cost price. You will make a loss');
 										return;
 									}
-									if (state.newSellingPrice === state.newCostPrice) {
-										message.error('Selling price must be greater than cost price in order to make profit');
+									if (getFieldValue('sellingPrice')  === getFieldValue('costPrice')) {
+										message.warning('Selling price must be greater than cost price in order to make profit');
 									}
 
 									await createRecord({
@@ -435,12 +444,13 @@ const EditComponentRaw = (props) => {
 																			<Button
 																				intent="success" style={{marginRight: '5px'}}
 																				onClick={() => {
+																					// setState({ price: state.price, quantity: state.quantity });
+																					console.log(state);
 																					saveProductPrice({
 																						price: state.price,
 																						quantity: state.quantity,
 																						id: state.id
 																					}, row);
-																					setState({ price: state.price, quantity: state.quantity });
 																				}}>Save</Button>
 																			<Button type='danger' onClick={() =>
 																				Modal.confirm({
@@ -482,47 +492,35 @@ const EditComponentRaw = (props) => {
 											</Button>
 										</div>
 									</Modal>
-									<Button onClick={() => setState({ viewPrices: true })}>View Cost Prices of Product</Button>
+									<Button onClick={() => setState({ viewPrices: true })}>Product cost prices</Button>
 								</Col>
 							</Row>
 						</Form>
-						<div
-							style={{
-								position: 'absolute',
-								right: 0,
-								bottom: 0,
-								width: '100%',
-								borderTop: '1px solid #e9e9e9',
-								padding: '10px 16px',
-								background: '#fff',
-								textAlign: 'right',
-							}}
+						<Divider dashed />
+						<Button
+							onClick={() => setState({ isShown: false })} style={{ marginRight: '20px' }}
+							type='danger'
 						>
-							<Button
-								onClick={() => setState({ isShown: false })} style={{ marginRight: 8 }}
-								type='danger'
-							>
-								Cancel
-							</Button>
-							<Button
-								onClick={async () => {
-									await updateRecord({
-										id: row.id,
-										name: getFieldValue('name'),
-										description: getFieldValue('description'),
-										quantity: getFieldValue('quantity'),
-										costPrice: getFieldValue('costPrice'),
-										sellingPrice: getFieldValue('sellingPrice'),
-										categoryId: getFieldValue('category'),
-										brandId: getFieldValue('brand'),
-									});
-									setState({ isShown: false })
-								}}
-								type="primary"
-							>
-								Save
-							</Button>
-						</div>
+							Cancel
+						</Button>
+						<Button
+							onClick={async () => {
+								await updateRecord({
+									id: row.id,
+									name: getFieldValue('name'),
+									description: getFieldValue('description'),
+									quantity: getFieldValue('quantity'),
+									costPrice: getFieldValue('costPrice'),
+									sellingPrice: getFieldValue('sellingPrice'),
+									categoryId: getFieldValue('category'),
+									brandId: getFieldValue('brand'),
+								});
+								setState({ isShown: false })
+							}}
+							type="primary"
+						>
+							Save
+						</Button>
 					</Drawer>
 					<Icon
 						type="edit"
@@ -618,19 +616,23 @@ const Products = (props) => {
 		await database.action(async () => {
 			if (record.id) {
 				const productPrice = await productPricesCollection.find(record.id);
+				console.log(productPrice);
+				console.log(record.quantity);
 				await productPrice.update(aProductPrice => {
-					aProductPrice.quantity = record.quantity;
+					aProductPrice.quantity = parseFloat(record.quantity);
 				});
+				const updatedProductPrice = await productPricesCollection.find(record.id);
+				console.log(updatedProductPrice);
 
 				message.success('Successfully updated product cost price');
 			} else {
 				const newProductPrice = await productPricesCollection.create(aProductPrice => {
 					aProductPrice.price = record.price;
-					aProductPrice.quantity = record.quantity;
+					aProductPrice.quantity = parseFloat(record.quantity);
 					aProductPrice.product.set(product);
 				});
 				if (newProductPrice.id) {
-					message.success('Successfully saved product cost price');
+					message.success('Successfully created product cost price');
 				}
 			}
 		});
@@ -667,7 +669,7 @@ const Products = (props) => {
 			<TopNav user={user}/>
 			<div id="main-area">
 				{
-					<DrawerIcon />
+					/*<DrawerIcon />*/
 				}
 				<div id="side-nav">
 					<h3 id="company" onClick={() => history.push('home')}>{company.name}</h3>
@@ -677,9 +679,13 @@ const Products = (props) => {
 						<button className="nav-item" onClick={() => history.push('brands')}>Brands</button>
 					</div>
 					<div className="bottom-area">
-						<a onClick={() => history.push('sales')}>
+						<a onClick={() => history.push("sales")}>
 							<Icon type="arrow-left"/>
-							Jump to Sales
+							&nbsp; Sales
+						</a><br/><br/>
+						<a onClick={() => history.push("expenses")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Expenditure
 						</a>
 					</div>
 				</div>

@@ -13,7 +13,7 @@ import TopNav from "../../../components/TopNav";
 import Company from "../../../model/companies/Company";
 import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";
-import {Icon, Tag, Select, Button} from 'antd';
+import {Icon, Tag, Select, Button, Empty} from 'antd';
 const {Option} = Select;
 
 const CardListItem = props => {
@@ -128,7 +128,8 @@ class Debtors extends React.Component {
 				</Grid>
 				<div className="list-div">
 					<div id="list-area">
-						{filteredSales.map(sale => (
+						{filteredSales.length === 0 ?
+							<Empty style={{ margin: "0 auto" }}/> : filteredSales.map(sale => (
 							<div key={sale.customerId} className="card-list-item">
 								{EnhancedCardListItem({
 									selectedCustomerId,
@@ -168,7 +169,8 @@ const Parent = props => {
 		users,
 		database,
 		history,
-		DrawerIcon
+		DrawerIcon,
+		setCustomersWithArrears
 	} = props;
 
 
@@ -176,7 +178,7 @@ const Parent = props => {
 		<div>
 			<TopNav user={user} />
 			<div id="main-area">
-				{<DrawerIcon />}
+				{/*<DrawerIcon />*/}
 				<div id="side-nav">
 					<h3 id="company" onClick={() => history.push("home")}>
 						{company.name}
@@ -203,8 +205,12 @@ const Parent = props => {
 					</div>
 					<div className="bottom-area">
 						<a onClick={() => history.push("products")}>
-							<Icon type="arrow-left" />
-							Jump to Inventory
+							<Icon type="arrow-left"/>
+							&nbsp; Inventory
+						</a><br/><br/>
+						<a onClick={() => history.push("expenses")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Expenditure
 						</a>
 					</div>
 				</div>
@@ -215,6 +221,7 @@ const Parent = props => {
 							users={users}
 							user={user}
 							database={database}
+							setCustomersWithArrears={setCustomersWithArrears}
 						/>
 					</div>
 				</div>

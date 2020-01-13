@@ -5,7 +5,6 @@ import {
   Dialog,
   Pane
 } from "evergreen-ui";
-import {Button, Select} from 'antd';
 import Grid from "@material-ui/core/Grid";
 import Component from "@reactions/component";
 import capitalize from "capitalize";
@@ -17,8 +16,11 @@ import Installment from "../model/installments/Installment";
 import { Q } from "@nozbe/watermelondb";
 import { ComponentToPrint } from '../screens/salesScreens/sales/Sales';
 import ReactToPrint from "react-to-print";
-import {Table, Icon, Drawer, Row, Col, Modal, InputNumber, message, Badge, Tag, Avatar} from "antd";
+import Functions from "../utilities/Functions";
+import {Table, Icon, Drawer, Row, Col, Modal, InputNumber, message, Badge, Tag,
+  Avatar, Empty, Divider, Button, Select} from "antd";
 const {Option} = Select;
+const {numberWithCommas} = Functions;
 
 
 const CardListItem = props => {
@@ -41,7 +43,8 @@ const CardListItem = props => {
     customers,
     company,
     installments,
-    users
+    users,
+    createdBy
   } = props;
 
 	const componentRef = useRef();
@@ -152,6 +155,7 @@ const CardListItem = props => {
       await database.collections.get(Installment.table).create(newInstallment => {
         newInstallment.amount = installmentAmount;
         newInstallment.createdBy.set(user);
+        newInstallment.companyId = company.id;
         newInstallment.sale.set(entry);
       });
 
@@ -172,34 +176,34 @@ const CardListItem = props => {
 
   let paymentStatusComponent = <div></div>;
 
+  const payStatusStyle = { color: 'darkgrey' };
+
   if (isSale()) {
     if (isFullyPaidFor()) {
-      paymentStatusComponent = <Badge status="success" text={entry.paymentStatus} style={{color: 'darkgrey'}}/>;
+      paymentStatusComponent = <Badge status="success" text={entry.paymentStatus} style={payStatusStyle}/>;
     } else if (isPartlyPaidFor()) {
-      paymentStatusComponent = <Badge status="warning" text={entry.paymentStatus} style={{color: 'darkgrey'}}/>;
+      paymentStatusComponent = <Badge status="warning" text={entry.paymentStatus} style={payStatusStyle}/>;
     } else if (isNotPaidFor()) {
-      paymentStatusComponent = <Badge status="error" text={entry.paymentStatus} style={{color: 'darkgrey'}}/>;
+      paymentStatusComponent = <Badge status="error" text={entry.paymentStatus} style={payStatusStyle}/>;
     }
   }
 
-  if (isInvoice()) {
-    console.log(entry);
-  }
-  const [userFirstName, userLastName] = user.name.split(" ");
+
+  const [userFirstName, userLastName] = createdBy.name.split(" ");
 
   return (
     <Grid container spacing={1}>
-      <Grid item xs={2} style={{ marginTop: "7px" }}>
+      <Grid item xs={1} style={{ marginTop: "7px" }}>
         <div>
           <Drawer
-            title={`Details of ${entry.type}`}
+            title={customer && customer.name ? `${capitalize(entry.type)} : ${customer.name} - (${customer.phone})` : `Details of ${entry.type}`}
             width='800px'
             onClose={() => setIsShown(false)}
             visible={isShown}
             bodyStyle={{paddingBottom: 80}}
           >
             <div style={{width: '90%', margin: "0 auto"}}>
-              <b>Cart</b>
+              <b>Sale items</b>
               {
                 isSale() ?
 									<Table
@@ -232,9 +236,26 @@ const CardListItem = props => {
 									/>
               }
               {
-                isSale() && installments.length > 0 ?
+                isSale() && entry.status !== 'full payment' ?
                   <div>
-                    <b>Installments Paid</b>
+										<Divider dashed/>
+                    <Row>
+                      <Col><b style={{float: 'left'}}>Payments</b></Col>
+                      <Col>
+												{
+													(totalSales - entry.discount) > totalAmountPaid ?
+														<Button
+															icon='wallet'
+															type='primary'
+															style={{ float: 'right' }}
+															onClick={() => {
+																setOpenInstallmentForm(true);
+															}}>
+															Pay
+														</Button> : ''
+												}
+                      </Col>
+                    </Row>
                     <Table
                       columns={installmentColumns}
                       dataSource={installments.map(installment => {
@@ -250,12 +271,6 @@ const CardListItem = props => {
                       })}
                     />
                   </div> : ''
-              }
-              {
-                isSale() && (totalSales - entry.discount) > totalAmountPaid ?
-                  <Button style={{ marginBottom: '20px' }} type='primary' onClick={() => setOpenInstallmentForm(true)}>
-                    Pay installment
-                  </Button> : ''
               }
 							<Modal
 								title={`Pay installment - Arrears (GHS ${(totalSales - entry.discount - totalAmountPaid)})`}
@@ -279,6 +294,7 @@ const CardListItem = props => {
 									onChange={value => setInstallmentAmount(value)}
 								/>
 							</Modal>
+							<Divider dashed>{capitalize(entry.type)} Details</Divider>
               <div
                 style={{
                   fontSize: "20px",
@@ -318,7 +334,7 @@ const CardListItem = props => {
                 ""
               )}
               {
-                totalAmountPaid < (totalSales - entry.discount) ?
+                entry.type === 'sale' && totalAmountPaid < (totalSales - entry.discount) ?
                   <div
 										style={{
 											fontSize: "20px",
@@ -326,8 +342,8 @@ const CardListItem = props => {
 											marginBottom: "20px"
 										}}
                   >
-										<b style={{fontWeight: "300"}}>
-											Arrears: GH₵ { (totalSales - entry.discount ) - totalAmountPaid }
+										<b style={{fontWeight: "300", color: 'red'}}>
+											Owing: GH₵ { (totalSales - entry.discount ) - totalAmountPaid }
 										</b>
                   </div> : ''
               }
@@ -361,7 +377,9 @@ const CardListItem = props => {
                   </b>
                 </div> : ''
               }
-              <Row gutter={16} style={{marginTop: '50px'}}>
+							<Divider dashed style={{marginTop: '50px'}}>Actions</Divider>
+              <Row gutter={16} style={{marginTop: '20px', margin: '0 auto', textAlign: 'center'}}>
+                  <Col span={7} />
                   <Col span={3}>
                     <Component initialState={{isShownPrint: false}}>
                       {({state, setState}) => (
@@ -421,7 +439,6 @@ const CardListItem = props => {
                   </Col>
                   <Col span={3}>
                     <Button
-                      style={{marginLeft: '10px'}}
                       onClick={() => setIsShown(false)}
                       type="danger"
                     >
@@ -461,43 +478,47 @@ const CardListItem = props => {
         </div>
       </Grid>
       <Grid item xs={2} style={{ marginTop: "7px" }}>
-        <div id="name-column">{entry.type}</div>
+        <div style={{ paddingLeft: '10px' }}>{capitalize(entry.type)}</div>
         {
           paymentStatusComponent
         }
       </Grid>
       <Grid item xs={2} >
-        <b>GHS {entry.salesTotal}</b>
+        <b>GHS {numberWithCommas(entry.salesTotal)}</b>
+        <div className='sub-name'>
+          Sales total
+        </div>
       </Grid>
-			<Grid item xs={2} style={{ marginTop: "7px" }}>
+			<Grid item xs={3} style={{ marginTop: "7px" }}>
 				{isSale() ?
 					<div>
-						<div id="name-column" style={{marginTop: '-10px'}}>
-							<Tag color="green">GHS {totalAmountPaid}</Tag>
+						<div style={{marginTop: '-10px'}}>
+							Paid &nbsp;&nbsp;&nbsp;<Tag color="green">GHS {numberWithCommas(totalAmountPaid)}</Tag>
 						</div>
-						<div id="name-column" style={{marginTop: '5px'}}>
-							<Tag color="red">GHS {entry.arrears}</Tag>
+						<div style={{marginTop: '5px'}}>
+							Owing <Tag color="red">GHS {numberWithCommas(entry.arrears)}</Tag>
 						</div>
 					</div> : ''
 				}
       </Grid>
-      <Grid item xs={2} style={{ marginTop: "16px" }}>
+      <Grid item xs={2}>
         {customer && customer.name ? (
-          <div style={{ color: "#7B8B9A", fontSize: "14px" }}>
-            {customer.name}
+          <div>
+            <div style={{fontSize: '13px'}}>{customer.name}</div>
+            <div className='sub-name'>Customer</div>
           </div>
         ) : (
           ""
         )}
       </Grid>
-      <Grid item xs={1} style={{ marginTop: "16px" }}>
+      <Grid item xs={1} style={{ marginTop: "8px" }}>
 				<Avatar style={{}}>
           {capitalize(userFirstName[0])}{capitalize(userLastName[0])}
 				</Avatar>
       </Grid>
       <Grid item xs={1} container style={{ marginTop: "16px" }}>
         <Grid item style={{ marginRight: "15px" }}>
-					{
+					{/*
 						isInvoice() ?
 							<EditComponent
 								sale={entry}
@@ -512,7 +533,7 @@ const CardListItem = props => {
 								customers={customers}
 								company={company}
 							/> : ''
-					}
+					*/}
         </Grid>
         <Grid item>
           {
@@ -545,6 +566,7 @@ const CardListItem = props => {
 								</Pane>
 							)}
 						</Component> : ''
+
           }
 
         </Grid>
@@ -572,7 +594,8 @@ class CardList extends React.Component {
     this.state = {
       selectedDate: new Date(),
       selectedName: "",
-      selectedCustomerId: null
+      selectedCustomerId: null,
+      selectedSalespersonId: null,
     };
   }
 
@@ -600,11 +623,15 @@ class CardList extends React.Component {
       company,
     } = this.props;
 
-    const {selectedCustomerId} = this.state;
+    const {selectedCustomerId, selectedSalespersonId} = this.state;
 
     let filteredSales = entries;
     if (selectedCustomerId && selectedCustomerId !== 'all') {
 			filteredSales = entries.filter(e => e.customerId === selectedCustomerId);
+		}
+
+		if (selectedSalespersonId && selectedSalespersonId !== 'all') {
+			filteredSales = entries.filter(e => e.createdBy.id === selectedSalespersonId);
 		}
 
     return (
@@ -621,12 +648,12 @@ class CardList extends React.Component {
         >
           <Grid
             item
-            xs={6}
+            xs={5}
             style={{
               color: "darkgrey",
             }}
           >
-            <b style={{color: 'black', marginRight: '10px', fontWeight: 'normal'}}>Select customer: </b>
+            <b style={{color: 'black', fontWeight: 'normal'}}>Select customer: </b>
 						<Select
 							showSearch
 							style={{ width: 200 }}
@@ -644,18 +671,40 @@ class CardList extends React.Component {
 							}
 						</Select>
           </Grid>
-          <Grid item xs={2}>
-          </Grid>
-          <Grid item xs={2} style={{ color: "grey" }}>
-
-          </Grid>
+					<Grid
+						item
+						xs={5}
+						style={{
+							color: "darkgrey",
+						}}
+					>
+						<b style={{color: 'black', fontWeight: 'normal'}}>Select salesperson: </b>
+						<Select
+							showSearch
+							style={{ width: 200 }}
+							placeholder="Select salesperson"
+							optionFilterProp="children"
+							onChange={(value) => this.setState({ selectedSalespersonId: value})}
+							onSearch={(value) => this.setState({ selectedSalespersonId: value})}
+							filterOption={(input, option) =>
+								option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+							}
+						>
+							<Option value="all">All</Option>
+							{
+								users.map(u => <Option key={u.id} value={u.id}>{u.name}</Option>)
+							}
+						</Select>
+					</Grid>
           <Grid item xs={2} style={{ color: "grey" }}>
             <p style={{ color: "grey", marginBottom: "-5px" }}>Action</p>
           </Grid>
         </Grid>
         <div className="list-div">
           <Grid container spacing={1} id="list-area">
-            {filteredSales.map(entry => (
+            { filteredSales.length === 0 ?
+              <Empty style={{margin: "0 auto"}}/> :
+              filteredSales.map(entry => (
               <div key={entry.id} className="card-list-item">
                 {EnhancedCardListItem({
                   entry,

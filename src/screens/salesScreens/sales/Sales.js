@@ -12,9 +12,10 @@ import capitalize from 'capitalize';
 import {
 	Dialog,
 	Pane,
-	toaster, Avatar
+	Avatar,
 	// eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
+import {CreateComponent as CreateCustomerComponent, createCustomerRecord} from '../customers/Customers';
 import SalesCardList from "../../../components/SalesCardList";
 import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";
@@ -27,10 +28,15 @@ import Customer from "../../../model/customers/Customer";
 import ReactToPrint from "react-to-print";
 import SaleEntry from "../../../model/saleEntries/SaleEntry";
 import ProductPrice from "../../../model/productPrices/ProductPrice";
-import {InputNumber, Select, Button, Icon, Form, Switch, message, Modal, Row, Col, Drawer, Statistic} from "antd";
+import {InputNumber, Button, Icon, Form, Switch, message, Modal, Row, Col, Drawer, Select} from "antd";
 import TopNav from "../../../components/TopNav";
 import Installment from "../../../model/installments/Installment";
-const { Option } = Select;
+import UserCompany from "../../../model/userCompanies/UserCompany";
+import ReactSelect from 'react-select';
+import Functions from '../../../utilities/Functions';
+
+const {Option} = Select;
+const {numberWithCommas} = Functions;
 
 const fieldNames = [
   { name: "discount", label: "Discount", type: "number" },
@@ -138,11 +144,21 @@ export class ComponentToPrint extends React.Component {
                     <td>({count})</td>
                     <td className="service">{product.name}</td>
 										<td className="qty">{saleEntry.quantity}</td>
-                    <td className="unit">{saleEntry.sellingPrice}</td>
-                    <td className="total">GHS {saleEntry.total}</td>
+                    <td className="unit">{numberWithCommas(saleEntry.sellingPrice)}</td>
+                    <td className="total">GHS {numberWithCommas(saleEntry.total)}</td>
                   </tr>
                 );
               })}
+							{discount && discount > 0 ? (
+								<tr>
+									<td colSpan="4" className="grand total">
+										SUB TOTAL
+									</td>
+									<td className="grand total">GHS {numberWithCommas(saleTotal)}</td>
+								</tr>
+							) : (
+								""
+							)}
               <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
               <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
               {discount && discount > 0 ? (
@@ -150,26 +166,16 @@ export class ComponentToPrint extends React.Component {
                   <td colSpan="4" className="grand total">
                     DISCOUNT
                   </td>
-                  <td className="grand total">GHS {discount}</td>
-                </tr>
-              ) : (
-                ""
-              )}
-              {discount && discount > 0 ? (
-                <tr>
-                  <td colSpan="4" className="grand total">
-                    TOTAL BEFORE DISCOUNT
-                  </td>
-                  <td className="grand total">GHS {saleTotal}</td>
+                  <td className="grand total">GHS ({numberWithCommas(discount)})</td>
                 </tr>
               ) : (
                 ""
               )}
               <tr>
                 <td colSpan="4" className="grand total">
-                  GRAND TOTAL
+                  TOTAL
                 </td>
-                <td className="grand total">GHS {saleTotal - discount}</td>
+                <td className="grand total">GHS {numberWithCommas(saleTotal - discount)}</td>
               </tr>
             </tbody>
           </table>
@@ -203,7 +209,7 @@ const SaleEntryComponentRaw = props => {
   const {getFieldDecorator} = props.form;
 
   const [selectedProductId, setSelectedProductId] = React.useState(
-    saleEntry.product ? saleEntry.product.id : null
+    saleEntry.productId? saleEntry.productId : saleEntry.product ? saleEntry.product.id : null
   );
 
   const [stateQuantity, setStateQuantity] = React.useState(
@@ -224,74 +230,46 @@ const SaleEntryComponentRaw = props => {
     ? products.find(p => p.id === selectedProductId)
     : null;
 
+  console.log(acceptCustomSellingPrice);
+  console.log(saleEntry);
+
+  const selectProductOptions = products.filter(p => !saleEntries.map(se => se.productId).includes(p.id)).map(aP => ({
+  	value: aP.id,
+		label: aP.name
+	}));
+
   return (
-    <Grid container spacing={1} className="sale-entry">
-      <Grid item style={{ marginRight: "7px" }}>
-        {/*
-					<SelectMenu
-						filterPlaceholder='Select product'
-						title="Select product"
-						options={
-							products.map(product => ({ label: product.name, value: product.id }))
-						}
-						selected={selectedProduct}
-						onSelect={item => {
-							setSelectedProduct(item.value);
-							const p = products.find(p => p.id === item.value);
-							updateSaleEntry({
-								sellingPrice: p.sellingPrice,
-								quantity: stateQuantity,
-								type: saleEntry.type,
-								total: p.sellingPrice * stateQuantity || 0,
-								productId: p.id,
-								key: saleEntry.key,
-								product: p
-							});
-						}}
-						style={{marginBottom: '20px'}}
-					>
-						<Button>{product ? product.name : 'Select product...'}</Button>
-					</SelectMenu>
-					*/}
-				{getFieldDecorator('selectedProduct', {
-					initialValue: product && product.id ? product.name : null,
-					rules: [{ required: true, message: 'Please select product' }],
-				})(
-					<Select
-						showSearch
-						style={{ width: 120 }}
-						placeholder="Select a product"
-						optionFilterProp="children"
-						onChange={item => {
-							setSelectedProductId(item);
-							const p = products.find(p => p.id === item);
-							updateSaleEntry({
-								sellingPrice: p.sellingPrice,
-								quantity: stateQuantity,
-								type: saleEntry.type,
-								total: p.sellingPrice * stateQuantity || 0,
-								productId: p.id,
-								key: saleEntry.key,
-								product: p
-							});
-						}}
-						filterOption={(input, option) =>
-							option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-							0
-						}
-					>
-						{products.filter(p => !saleEntries.map(se => se.productId).includes(p.id)).map(product => (
-							<Option key={product.id} value={product.id}>
-								{product.name}
-							</Option>
-						))}
-					</Select>
-				)}
+    <Grid container spacing={1} className="sale-entry" style={{borderColor: 'lightblue'}}>
+      <Grid item style={{ marginRight: "5px", width: '200px' }}>
+				<ReactSelect
+					className="basic-single"
+					isClearable={false}
+					isSearchable={true}
+					placeholder="Select product"
+					options={selectProductOptions}
+					defaultValue={selectedProductId ? {value: product.id, label: product.name} : null}
+					onChange={item => {
+						const p = products.find(p => p.id === item.value);
+						setSelectedProductId(item.value);
+						updateSaleEntry({
+							sellingPrice: acceptCustomSellingPrice === true ? saleEntry.sellingPrice : p.sellingPrice,
+							quantity: stateQuantity,
+							type: saleEntry.type,
+							total: acceptCustomSellingPrice ? saleEntry.sellingPrice * stateQuantity: p.sellingPrice * stateQuantity,
+							productId: item.value,
+							key: saleEntry.key,
+							product: p
+						});
+					}}
+				/>
       </Grid>
       <Grid item>
         <Chip
           label={`GH₵ ${product ? product.sellingPrice : 0}`}
           variant="outlined"
+					style={{
+						marginRight: '5px'
+					}}
         />
 				{getFieldDecorator('productSellingPrice', {
 					initialValue: saleEntry ? saleEntry.sellingPrice : product.sellingPrice,
@@ -304,12 +282,6 @@ const SaleEntryComponentRaw = props => {
 						}}
 						disabled={!acceptCustomSellingPrice}
 						onChange={value => {
-							console.log("++++++++++++++++++++++++");
-							console.log("++++++++++++++++++++++++");
-							console.log(saleEntry.quantity);
-							console.log(stateQuantity);
-							console.log("++++++++++++++++++++++++");
-							console.log("++++++++++++++++++++++++");
 							updateSaleEntry({
 								sellingPrice: value || product.sellingPrice,
 								quantity: stateQuantity,
@@ -342,18 +314,18 @@ const SaleEntryComponentRaw = props => {
 						}}
 						onChange={value => {
 							if (value > productTotalCount) {
-								toaster.danger(
-									`Only ${productTotalCount} ${product.name} are left`
-								);
+								message.error(`Only ${productTotalCount} ${product.name} are left`);
 							} else {
-								setStateQuantity(value || 0);
+								setStateQuantity(value);
+								console.log(saleEntry);
+								console.log(value);
 								updateSaleEntry({
 									sellingPrice: product
-										? product.sellingPrice
-										: saleEntry.sellingPrice,
-									quantity: value || 0,
+										&& saleEntry.sellingPrice && acceptCustomSellingPrice? saleEntry.sellingPrice
+										: product.sellingPrice,
+									quantity: value,
 									type: saleEntry.type,
-									total: product ? product.sellingPrice * value : saleEntry.total,
+									total: product && saleEntry.sellingPrice ? saleEntry.sellingPrice * value : value * product.sellingPrice,
 									productId: selectedProductId ? selectedProductId : null,
 									key: saleEntry.key,
 									product
@@ -538,6 +510,7 @@ const CreateComponent = props => {
 									size="large"
 									onClick={() => {
 										if (salesEntries.length === products.length) {
+											message.error('You have selected all items already!');
 											return;
 										}
 										setCount(count + 1);
@@ -570,7 +543,7 @@ const CreateComponent = props => {
 								</b>
 								<Select
 									showSearch
-									style={{ width: '60%' }}
+									style={{ width: '350px' }}
 									placeholder="Select a customer"
 									optionFilterProp="children"
 									onChange={item => setSelectedCustomer(item)}
@@ -586,6 +559,7 @@ const CreateComponent = props => {
 										</Option>
 									))}
 								</Select>
+								<CreateCustomerComponent createRecord={createCustomerRecord} database={database} company={company} buttonSize={30} buttonClass={'create-avatar-small'}/>
 							</div>
 							<div  style={{ marginBottom: "40px"}}>
 								<b
@@ -607,8 +581,6 @@ const CreateComponent = props => {
 								/>
 							</div>
 							<div style={{marginBottom: '20px'}}>
-								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept credit</b>
-								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCredit} />
 								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept custom selling price</b>
 								<Switch checkedChildren="Yes" unCheckedChildren="No" onChange={setAcceptCustomSellingPrice} />
 							</div>
@@ -807,6 +779,8 @@ const EditComponent = props => {
 		setSalesTotal(newSalesTotal);
 	};
 
+	const salesChange = (cashReceived - (salesTotal - discount)).toFixed(2);
+
 
 	return (
 		<div>
@@ -820,17 +794,16 @@ const EditComponent = props => {
 				>
 					<Row>
 						<Col span={8} id="calculator-view">
-							<h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
-							<div style={{ fontSize: "60px" }}>
+							<h1 style={{ fontSize: "40px", color: "red" }}>Total</h1>
+							<div style={{ fontSize: "35px" }}>
 								<b style={{ color: "#09d3ac" }}>GH₵</b>
-								<br /> {(salesTotal - discount).toFixed(2)}
+								{numberWithCommas((salesTotal - discount).toFixed(2))}
 							</div>
 							{discount && discount > 0 ? (
-								<div style={{ marginTop: "50px" }}>
+								<div style={{ marginTop: "30px" }}>
 									<h1 style={{ fontSize: "30px", color: "red" }}>
-										<b>Discount</b>
-										<br />
-										GH₵ {discount}
+										<b>Discount</b><br/>
+										GHS {numberWithCommas(discount)}
 									</h1>
 								</div>
 							) : (
@@ -841,12 +814,28 @@ const EditComponent = props => {
 									<h1 style={{ fontSize: "25px" }}>
 										<b>Before discount</b>
 										<br />
-										GH₵ {salesTotal}
+										GHS {numberWithCommas(salesTotal)}
 									</h1>
 								</div>
 							) : (
 								""
 							)}
+							<div style={{ marginTop: "20px" }}>
+								<h1 style={{ fontSize: "25px" }}>
+									<b>{ salesChange < 0 ? 'Owing' : 'Change' }</b>
+									<br />
+									<div
+										style={{
+											backgroundColor: salesChange < 0 ? 'red' : 'rgb(9, 211, 172)',
+											color: 'white',
+											fontSize: "30px",
+											borderRadius: '5px',
+										}}
+									>
+										GHS {numberWithCommas(salesChange < 0 ? salesChange * -1 : salesChange)}
+									</div>
+								</h1>
+							</div>
 						</Col>
 						{/*<SideSheet isShown={open} onCloseComplete={handleClose} style={{}}>*/}
 						<Col span={2}></Col>
@@ -933,7 +922,7 @@ const EditComponent = props => {
 								<b
 									style={{
 										marginLeft: "16px",
-										marginRight: "50px",
+										marginRight: "42px",
 									}}
 								>
 									Cash received (GHS):
@@ -946,17 +935,6 @@ const EditComponent = props => {
 									}}
 									onChange={value => setCashReceived(value)}
 								/>
-							</div>
-							<div style={{ marginBottom: "20px"}}>
-								<b
-									style={{
-										marginLeft: "50px",
-										marginRight: "20px",
-										fontWeight: "normal"
-									}}
-								>
-									<b>Change (GHS):</b>	<Chip style={{ fontSize: '20px', marginLeft: '60px'}} label={(cashReceived - (salesTotal - discount)).toFixed(2)} variant="outlined" />
-								</b>
 							</div>
 							<div style={{ marginBottom: "40px"}}>
 								<b style={{marginLeft: '50px', fontWeight: 'normal', marginRight: '20px'}} color="red">Accept credit</b>
@@ -1142,6 +1120,24 @@ const Sales = props => {
   const productsCollection = database.collections.get(Product.table);
 	const installmentsCollection = database.collections.get(Installment.table);
 
+	/*
+	database.action(async () => {
+		const values = await installmentsCollection.query().fetch();
+		console.log("###################");
+		console.log(values);
+		console.log("###################");
+		values.forEach(async ins => {
+			await ins.update(updatedIns => {
+				console.log(updatedIns);
+				updatedIns.companyId = MyLocal.companyId;
+			});
+		});
+	}).then(() => {
+		console.log("Done");
+	});
+	*/
+
+
   const createRecord = async (options) => {
   	const { salesEntries, salesTotal, selectedCustomer, discount, saleType } = options;
 
@@ -1237,8 +1233,6 @@ const Sales = props => {
 			}
 
 			const updatedSale = await salesCollection.find(sale.id);
-			console.log(updatedSale);
-			console.log(saleType);
 
 			if (saleType === 'sale') {
 				if (cashReceived < (salesTotal - discount - totalPaid) && acceptCredit === false) {
@@ -1250,7 +1244,7 @@ const Sales = props => {
 					const change = (cashReceived - (salesTotal - discount - totalPaid)).toFixed(2);
 					Modal.warning({
 						title: `Give change to ${currentCustomer.name}`,
-						content: <b>You need to give change of GHS {change}</b>,
+						content: <b>You need to give change of GHS {numberWithCommas(change)}</b>,
 					});
 				}
 
@@ -1259,7 +1253,7 @@ const Sales = props => {
 					await installmentsCollection.create(installment => {
 						installment.sale.set(updatedSale);
 						installment.createdBy.set(user);
-						installment.amount = cashReceived <= (salesTotal - totalPaid) ?  cashReceived : salesTotal - totalPaid;
+						installment.amount = cashReceived <= (salesTotal - totalPaid - discount) ?  cashReceived : (salesTotal - totalPaid - discount);
 					});
 				}
 			}
@@ -1269,7 +1263,7 @@ const Sales = props => {
 				console.log(aSale);
 				aSale.type = saleType;
 				aSale.paymentStatus = paymentStatus;
-				aSale.arrears = arrears;
+				aSale.arrears = arrears < 0 ? 0 : arrears;
 				aSale.salesTotal = salesTotal;
 				aSale.createdBy.set(user);
 				aSale.customer.set(currentCustomer);
@@ -1358,7 +1352,7 @@ const Sales = props => {
     <div>
       <TopNav user={user} />
       <div id="main-area">
-        {<DrawerIcon />}
+        {/*<DrawerIcon />*/}
         <div id="side-nav">
           <h3 id="company" onClick={() => history.push("home")}>
             {company.name}
@@ -1388,12 +1382,16 @@ const Sales = props => {
               Dashboard
             </Button>
           </div>
-          <div className="bottom-area">
-            <a onClick={() => history.push("products")}>
-              <Icon type="arrow-left" />
-              Jump to Inventory
-            </a>
-          </div>
+					<div className="bottom-area">
+						<a onClick={() => history.push("products")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Inventory
+						</a><br/><br/>
+						<a onClick={() => history.push("expenses")}>
+							<Icon type="arrow-left"/>
+							&nbsp; Expenditure
+						</a>
+					</div>
         </div>
         <div id="main-body">
           <div>
@@ -1448,7 +1446,7 @@ const EnhancedSales = withDatabase(
     user: database.collections.get(User.table).find(MyLocal.userId),
     users: database.collections
       .get(User.table)
-      .query()
+      .query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
       .observe(),
     products: database.collections
       .get(Product.table)

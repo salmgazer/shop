@@ -4,7 +4,7 @@ import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 export default class Product extends Model {
   static table = 'products';
-  static deletable = true;
+  static deletable = false;
 
   static associations = {
     brands: { type: 'belongs_to', key: 'brand_id' },
@@ -28,6 +28,9 @@ export default class Product extends Model {
 
 	async remove() {
 		await this.markAsDeleted(); // syncable
+		this.productPrices.forEach(productPrice => {
+			productPrice.remove();
+		});
 	}
 
 	productPrices = this.collections

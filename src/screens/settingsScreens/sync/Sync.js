@@ -67,10 +67,7 @@ class Sync extends React.Component{
 		const {
 			user,
 			company,
-			database,
 			history,
-			DrawerIcon,
-			modelName
 		} = this.props;
 
 		const {showSpinner, success} = this.state;
@@ -79,7 +76,7 @@ class Sync extends React.Component{
 			<div>
 				<TopNav user={user}/>
 				<div id="main-area">
-					{<DrawerIcon/>}
+					{/*DrawerIcon/>*/}
 					<div id="side-nav">
 						<h3 id="company" onClick={() => history.push("home")}>
 							{company.name}
@@ -98,7 +95,15 @@ class Sync extends React.Component{
 						<div className="bottom-area">
 							<a onClick={() => history.push("sales")}>
 								<Icon type="arrow-left"/>
-								Jump to Sales
+								&nbsp; Sales
+							</a><br/><br/>
+							<a onClick={() => history.push("products")}>
+								<Icon type="arrow-left"/>
+								&nbsp; Inventory
+							</a><br/><br/>
+							<a onClick={() => history.push("expenses")}>
+								<Icon type="arrow-left"/>
+								&nbsp; Expenditure
 							</a>
 						</div>
 					</div>

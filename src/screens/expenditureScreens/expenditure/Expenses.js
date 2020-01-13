@@ -6,7 +6,6 @@ import { withRouter } from "react-router-dom";
 import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
-import pluralize from "pluralize";
 import moment from "moment";
 import {
   Drawer,
@@ -14,11 +13,11 @@ import {
   Row,
   Col,
   Select,
-  Input,
   Icon,
   Button,
   InputNumber,
-  DatePicker
+  DatePicker,
+  Divider
 } from "antd";
 import {
   Textarea,
@@ -33,6 +32,7 @@ import TopNav from "../../../components/TopNav";
 import Expense from "../../../model/expenses/Expense";
 import ExpenseCategory from "../../../model/expenseCategories/ExpenseCategory";
 import User from "../../../model/users/User";
+import UserCompany from "../../../model/userCompanies/UserCompany";
 
 const { Option } = Select;
 
@@ -171,32 +171,24 @@ const DrawerCreateComponent = props => {
                 </Col>
               </Row>
             </Form>
-            <div
-              style={{
-                width: "100%",
-                borderTop: "1px solid #e9e9e9",
-                padding: "10px 16px",
-                background: "#fff",
-                textAlign: "right"
+            <Divider dashed/>
+            <Button
+              type="danger"
+              onClick={() => setState({ visible: false })}
+              style={{ marginRight: 20 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              htmlType="submit"
+              type='primary'
+              onClick={e => {
+                handleSubmit(e);
+                setState({ visible: false });
               }}
             >
-              <Button
-                type="danger"
-                onClick={() => setState({ visible: false })}
-                style={{ marginRight: 20 }}
-              >
-                Cancel
-              </Button>
-              <Button
-                htmlType="submit"
-                onClick={e => {
-                  handleSubmit(e);
-                  setState({ visible: false });
-                }}
-              >
-                Save
-              </Button>
-            </div>
+              Save
+            </Button>
           </Drawer>
 					<Button
 						onClick={() => setState({ visible: true })}
@@ -363,32 +355,24 @@ const DrawerEditComponent = props => {
                 </Col>
               </Row>
             </Form>
-            <div
-              style={{
-                width: "100%",
-                borderTop: "1px solid #e9e9e9",
-                padding: "10px 16px",
-                background: "#fff",
-                textAlign: "right"
-              }}
-            >
-              <Button
-                type="danger"
-                onClick={() => setState({ visible: false })}
-                style={{ marginRight: 20 }}
-              >
-                Cancel
-              </Button>
-              <Button
-                htmlType="submit"
-                onClick={e => {
-                  handleSubmit(e);
-                  setState({ visible: false });
-                }}
-              >
-                Save
-              </Button>
-            </div>
+            <Divider dashed />
+						<Button
+							type="danger"
+							onClick={() => setState({ visible: false })}
+							style={{ marginRight: 20 }}
+						>
+							Cancel
+						</Button>
+						<Button
+							htmlType="submit"
+              type='primary'
+							onClick={e => {
+								handleSubmit(e);
+								setState({ visible: false });
+							}}
+						>
+							Save
+						</Button>
           </Drawer>
           <Icon
             className="hand-pointer"
@@ -468,7 +452,7 @@ const Expenses = props => {
     <div>
       <TopNav user={user} />
       <div id="main-area">
-        {<DrawerIcon />}
+        {/*<DrawerIcon />*/}
         <div id="side-nav">
           <h3 id="company" onClick={() => history.push("home")}>
             {company.name}
@@ -485,14 +469,18 @@ const Expenses = props => {
           <div className="bottom-area">
             <a onClick={() => history.push("sales")}>
               <Icon type="arrow-left" />
-              Jump to Sales
-            </a>
+							&nbsp; Sales
+            </a><br/><br/>
+						<a onClick={() => history.push("products")}>
+							<Icon type="arrow-left" />
+							&nbsp; Inventory
+						</a>
           </div>
         </div>
         <div id="main-body">
           <div>
             <ExpenseCardList
-              entries={expenses}
+              entries={expenses.sort((a, b) => b.updatedAt - a.updatedAt)}
               expenseCategories={expenseCategories}
               users={users}
               EditComponent={EditComponent}
@@ -583,7 +571,7 @@ const EnhancedParent = withDatabase(
     user: database.collections.get("users").find(MyLocal.userId),
     users: database.collections
       .get(User.table)
-      .query()
+			.query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
       .observe()
   }))(withRouter(Parent))
 );

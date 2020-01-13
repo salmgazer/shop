@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import { Dialog, Pane, Combobox, SearchInput } from "evergreen-ui";
-import { Col, Drawer, Icon, Row, Modal, Button, Tag} from "antd";
+import { Col, Drawer, Icon, Row, Modal, Button, Tag, Divider} from "antd";
 import Grid from "@material-ui/core/Grid";
 import Component from "@reactions/component";
 import capitalize from "capitalize";
@@ -11,6 +11,8 @@ import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from "@material-ui/core/Chip";
 import Product from "../model/products/Product";
+import ProductPrice from "../model/productPrices/ProductPrice";
+import * as Q from "@nozbe/watermelondb/QueryDescription";
 
 const CardListItem = props => {
 	const {
@@ -45,13 +47,13 @@ const CardListItem = props => {
 					{({ state, setState }) => (
 						<React.Fragment>
 							<Drawer
-								title={`Details of ${modelName}`}
+								title={`Details of ${capitalize(modelName)}`}
 								width={720}
 								onClose={() => setState({ isShown: false })}
 								visible={state.isShown}
 								bodyStyle={{ paddingBottom: 80 }}
 							>
-								<div style={{ width: "80%", margin: "0 auto" }}>
+								<div style={{ width: "90%", margin: "0 auto" }}>
 									{fieldNames.map(field => {
 										let value = entry[field.name];
 										if (typeof value === "object") {
@@ -134,9 +136,17 @@ const CardListItem = props => {
 										))}
 									</Modal>
 									<Button onClick={() => setState({ viewPrices: true })}>
-										View product prices
+										Product cost prices
 									</Button>
-									<div style={{ margin: "0 auto", marginTop: "60px" }}>
+									<Divider dashed />
+									<div style={{ margin: "0 auto", marginTop: "20px" }}>
+										<Button
+											style={{ marginRight: "30px" }}
+											onClick={() => setState({ isShown: false })}
+											type="danger"
+										>
+											Close
+										</Button>
 										<EditComponent
 											row={entry}
 											modelName={modelName}
@@ -149,13 +159,6 @@ const CardListItem = props => {
 											removeProductPrice={removeProductPrice}
 											saveProductPrice={saveProductPrice}
 										/>
-										<Button
-											style={{ marginLeft: "20px" }}
-											onClick={() => setState({ isShown: false })}
-											intent="danger"
-										>
-											Close
-										</Button>
 									</div>
 								</div>
 							</Drawer>
@@ -176,8 +179,9 @@ const CardListItem = props => {
 			<Grid item xs={2} style={{ marginTop: "16px" }}>
 				<Tag color={totalQuantity < 5 ? 'red' : 'green'}>{totalQuantity.toFixed(2)} left</Tag>
 			</Grid>
-			<Grid item xs={3} style={{ marginTop: "16px" }}>
-				<div style={{ color: "#7B8B9A", fontSize: "14px" }}>{user.name}</div>
+			<Grid item xs={3} style={{ marginTop: "0px" }}>
+				<div>{user.name}</div>
+				<div className='sub-name'>Salesperson</div>
 			</Grid>
 			<Grid item xs={1} container style={{ marginTop: "16px" }}>
 				<Grid item>
@@ -219,7 +223,7 @@ const CardListItem = props => {
 										color="muted"
 										className="hand-pointer"
 										style={{
-											marginLeft: "10px"
+											marginLeft: "30px"
 										}}
 										onClick={() => setState({ isShown: true })}
 									/>
@@ -242,7 +246,7 @@ const EnhancedCardListItem = withDatabase(
 			.findAndObserve(entry.id),
 		brand: entry.brand,
 		category: entry.category,
-		productPrices: entry.productPrices.observe()
+		productPrices: database.collections.get(ProductPrice.table).query(Q.where('product_id', entry.id)).observe()
 	}))(CardListItem)
 );
 
@@ -283,12 +287,23 @@ class CardList extends React.Component {
 					spacing={1}
 					style={{
 						marginBottom: "15px",
-						width: "85%",
-						marginRight: "50px",
-						float: "right"
+						width: "92%",
+						marginLeft: "25px"
 					}}
 				>
-					<Grid item xs={2}></Grid>
+					<Grid item xs={2}>
+						<div style={{
+							paddingLeft: '20px',
+							paddingRight: '20px',
+							paddingTop: '5px',
+							paddingBottom: '5px',
+							backgroundColor: 'white',
+							borderRadius: '5px',
+							fontWeight: 'bold'
+						}}>
+							Products: {entries.length}
+						</div>
+					</Grid>
 					<Grid
 						item
 						xs={4}
@@ -308,26 +323,12 @@ class CardList extends React.Component {
 						/>
 					</Grid>
 					<Grid item xs={2}>
-						<p style={{ color: "grey", marginBottom: "-5px" }}>Created on</p>
+						<p style={{ color: "grey", marginBottom: "-5px" }}>Quantity</p>
 					</Grid>
-					<Grid item xs={3} style={{ color: "grey" }}>
-						<Combobox
-							width="80%"
-							items={[{ name: "all" }].concat(
-								users.map(entry => {
-									return { name: entry.name };
-								})
-							)}
-							onChange={selected => console.log(selected)}
-							placeholder="Created by"
-							itemToString={item => (item ? item.name : "")}
-							autocompleteProps={{
-								// Used for the title in the autocomplete.
-								title: "Created by"
-							}}
-						/>
+					<Grid item xs={2} style={{ color: "grey" }}>
+						<p style={{ color: "grey", marginBottom: "-5px", marginLeft: "-15px" }}>Created by</p>
 					</Grid>
-					<Grid item xs={1} style={{ color: "grey" }}>
+					<Grid item xs={1} style={{ color: "grey", marginLeft: "20px"  }}>
 						<p style={{ color: "grey", marginBottom: "-5px" }}>Action</p>
 					</Grid>
 				</Grid>

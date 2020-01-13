@@ -2,10 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
-  Button,
   Dialog,
   Pane,
-  SideSheet,
   Combobox,
   SearchInput
 } from "evergreen-ui";
@@ -17,7 +15,7 @@ import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import Chip from "@material-ui/core/Chip";
 
-import { Icon } from "antd";
+import {Drawer, Icon, Button, Divider} from "antd";
 import ExpenseCategory from "../model/expenseCategories/ExpenseCategory";
 const CardListItem = props => {
   const {
@@ -41,24 +39,18 @@ const CardListItem = props => {
 
   return (
     <Grid container spacing={1}>
-      <Grid item xs={2} style={{ width: "100px", marginTop: "7px" }}>
+      <Grid item xs={1} style={{ marginTop: "7px" }}>
         <Component initialState={{ isShown: false }}>
           {({ state, setState }) => (
             <React.Fragment>
-              <SideSheet
-                isShown={state.isShown}
-                onCloseComplete={() => setState({ isShown: false })}
-              >
-                <div style={{ width: "80%", margin: "0 auto" }}>
-                  <h3
-                    style={{
-                      fontSize: "40px",
-                      fontWeight: "400",
-                      color: "#09d3ac"
-                    }}
-                  >
-                    Details of {displayName || modelName}
-                  </h3>
+							<Drawer
+								title={`Details of ${capitalize(modelName)}`}
+								width={720}
+								onClose={() => setState({ isShown: false })}
+								visible={state.isShown}
+								bodyStyle={{ paddingBottom: 80 }}
+							>
+                <div style={{ width: "90%", margin: "0 auto" }}>
                   {fieldNames.map(field => {
                     let value = entry[field.name];
                     if (typeof value === "object") {
@@ -83,28 +75,26 @@ const CardListItem = props => {
                     );
                   })}
 
-                  <div style={{ margin: "0 auto", marginTop: "20px" }}>
-                    <Button>
-                      Edit
-                      <EditComponent
-                        displayName={displayName}
-                        row={entry}
-                        modelName={modelName}
-                        updateRecord={updateRecord}
-                        keyFieldName={keyFieldName}
-                        expenseCategories={expenseCategories}
-                      />
-                    </Button>
+                  <Divider dashed />
+                  <div style={{ marginTop: "20px" }}>
+                    <EditComponent
+                      displayName={displayName}
+                      row={entry}
+                      modelName={modelName}
+                      updateRecord={updateRecord}
+                      keyFieldName={keyFieldName}
+                      expenseCategories={expenseCategories}
+                    />
                     <Button
                       style={{ marginLeft: "20px" }}
                       onClick={() => setState({ isShown: false })}
-                      intent="danger"
+                      type="danger"
                     >
                       Close
                     </Button>
                   </div>
                 </div>
-              </SideSheet>
+              </Drawer>
               <Button
                 icon="eye-open"
                 onClick={() => setState({ isShown: true })}
@@ -244,7 +234,20 @@ class CardList extends React.Component {
             float: "right"
           }}
         >
-          <Grid item xs={2}></Grid>
+					<Grid item xs={2}>
+						<div style={{
+							paddingLeft: '20px',
+							paddingRight: '20px',
+							paddingTop: '5px',
+							paddingBottom: '5px',
+							backgroundColor: 'white',
+							borderRadius: '5px',
+							fontWeight: 'bold',
+							marginLeft: '-77px'
+						}}>
+							Count: {entries.length}
+						</div>
+					</Grid>
           <Grid
             item
             xs={3}

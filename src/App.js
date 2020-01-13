@@ -6,6 +6,7 @@ import Login from "./screens/login/Login";
 import Control from "./screens/control/Control";
 import Sales from "./screens/salesScreens/sales/Sales";
 import Customers from "./screens/salesScreens/customers/Customers";
+import Dashboard from "./screens/salesScreens/dashboard/Dashboard";
 import Debtors from "./screens/salesScreens/debtors/Debtors";
 import Products from "./screens/inventoryScreens/products/Products";
 import Categories from "./screens/inventoryScreens/categories/Categories";
@@ -185,6 +186,20 @@ class App extends React.Component {
                   );
                 }}
               />
+							<Route
+								path={`/${companyCode}/dashboard`}
+								render={() => {
+									setPageBackground("#f4f5f7");
+									this.setTitle(`Dashboard | ${companyName}`);
+									return (
+										<Dashboard
+											DrawerIcon={this.DrawerIcon}
+											parentLocation="Sales"
+											modelName="customer"
+										/>
+									);
+								}}
+							/>
 							<Route
 								path={`/${companyCode}/debtors`}
 								render={() => {
