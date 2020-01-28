@@ -597,6 +597,8 @@ const Products = (props) => {
 				productPrice.product.set(newProduct);
 				productPrice.price = productToCreate.costPrice;
 				productPrice.quantity = productToCreate.quantity;
+				productPrice.companyId = company.id;
+				productPrice.createdBy.set(user);
 			});
 
 			console.log(`Created ${newProduct}`);

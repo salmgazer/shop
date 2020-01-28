@@ -3,7 +3,7 @@ import {field, date, readonly, json, relation, lazy} from '@nozbe/watermelondb/d
 
 export default class Customer extends Model {
 	static table = 'customers';
-	static deletable = true;
+	static deletable = false;
 	static editable = true;
 
 	static associations = {

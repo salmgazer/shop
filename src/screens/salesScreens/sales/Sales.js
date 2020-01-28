@@ -34,6 +34,8 @@ import Installment from "../../../model/installments/Installment";
 import UserCompany from "../../../model/userCompanies/UserCompany";
 import ReactSelect from 'react-select';
 import Functions from '../../../utilities/Functions';
+import Brand from "../../../model/brand/Brand";
+import Expense from "../../../model/expenses/Expense";
 
 const {Option} = Select;
 const {numberWithCommas} = Functions;
@@ -440,7 +442,12 @@ const CreateComponent = props => {
   };
 
   const handleClose = () => {
-    // setSaleEntries([]);
+    setSaleEntries([]);
+    setSelectedCustomer(null);
+    setAcceptCustomSellingPrice(false);
+    setAcceptCredit(false);
+    setDiscount(0);
+    setSalesTotal(0);
     setOpen(false);
   };
 
@@ -452,6 +459,7 @@ const CreateComponent = props => {
     entry.sellingPrice = saleEntry.sellingPrice;
     entry.type = saleEntry.type;
     entry.total = saleEntry.total;
+    entry.companyId = company.id;
     setSaleEntries(newSaleEntries);
     let newSalesTotal = 0;
     salesEntries.forEach(se => {
@@ -464,7 +472,7 @@ const CreateComponent = props => {
     <div>
       <React.Fragment>
 				<Drawer
-					title="Sales and Invoice"
+					title="Invoice"
 					width='100%'
 					onClose={handleClose}
 					visible={open}
@@ -472,14 +480,14 @@ const CreateComponent = props => {
 				>
 					<Row>
 						<Col span={8} id="calculator-view">
-							<h1 style={{ fontSize: "50px", color: "red" }}>Total</h1>
-							<div style={{ fontSize: "60px" }}>
+							<h1 style={{ fontSize: "4em", color: "red", marginTop: "-0.7em", marginBottom: "-0.2em" }}>Total</h1>
+							<div style={{ fontSize: "4em" }}>
 								<b style={{ color: "#09d3ac" }}>GH₵</b>
 								<br /> {(salesTotal - discount).toFixed(2)}
 							</div>
 							{discount && discount > 0 ? (
-								<div style={{ marginTop: "50px" }}>
-									<h1 style={{ fontSize: "30px", color: "red" }}>
+								<div style={{ marginTop: "1em" }}>
+									<h1 style={{ fontSize: "2em", color: "red" }}>
 										<b>Discount</b>
 										<br />
 										GH₵ {discount}
@@ -501,7 +509,7 @@ const CreateComponent = props => {
 							)}
 						</Col>
 						<Col span={2}></Col>
-						<Col span={14}>
+						<Col span={14} id="actual-sales-view">
 							<div id="add-item">
 								<Button
 									type="primary"
@@ -546,12 +554,8 @@ const CreateComponent = props => {
 									style={{ width: '350px' }}
 									placeholder="Select a customer"
 									optionFilterProp="children"
+									value={selectedCustomer}
 									onChange={item => setSelectedCustomer(item)}
-									filterOption={(input, option) =>
-										option.props.children
-											.toLowerCase()
-											.indexOf(input.toLowerCase()) >= 0
-									}
 								>
 									{customers.map(customer => (
 										<Option key={customer.id} value={customer.id}>
@@ -574,6 +578,7 @@ const CreateComponent = props => {
 								<InputNumber
 									min={0}
 									defaultValue={0}
+									value={discount}
 									style={{
 										width: "200px"
 									}}
@@ -682,6 +687,25 @@ const CreateComponent = props => {
 							)}
 						</Col>
 					</Row>
+					<div
+						style={{
+							position: 'absolute',
+							right: 0,
+							bottom: 0,
+							width: '100%',
+							borderTop: '1px solid #e9e9e9',
+							padding: '3px 5px',
+							background: '#fff',
+							textAlign: 'right',
+						}}
+					>
+						<Button
+							onClick={handleClose} style={{ marginRight: 8 }}
+							type='danger'
+						>
+							Cancel
+						</Button>
+					</div>
 				</Drawer>
 				<Avatar
 					style={{
@@ -760,6 +784,10 @@ const EditComponent = props => {
 
 	const handleClose = () => {
 		setSaleEntries([]);
+		setSelectedCustomer(null);
+		setAcceptCustomSellingPrice(false);
+		setAcceptCredit(false);
+		setDiscount(0);
 		setOpen(false);
 	};
 
@@ -767,6 +795,7 @@ const EditComponent = props => {
 		const newSaleEntries = salesEntries;
 		const entry = newSaleEntries.find(se => se.key === saleEntry.key);
 		entry.productId = saleEntry.productId;
+		entry.companyId = company.id;
 		entry.quantity = saleEntry.quantity;
 		entry.sellingPrice = saleEntry.sellingPrice;
 		entry.type = saleEntry.type;
@@ -839,7 +868,7 @@ const EditComponent = props => {
 						</Col>
 						{/*<SideSheet isShown={open} onCloseComplete={handleClose} style={{}}>*/}
 						<Col span={2}></Col>
-						<Col span={14}>
+						<Col span={14} id='actual-sales-view'>
 							<div id="add-item">
 								<Button
 									type="primary"
@@ -1083,6 +1112,25 @@ const EditComponent = props => {
 						</Col>
 						{/*</SideSheet>*/}
 						</Row>
+					<div
+						style={{
+							position: 'absolute',
+							right: 0,
+							bottom: 0,
+							width: '100%',
+							borderTop: '1px solid #e9e9e9',
+							padding: '3px 5px',
+							background: '#fff',
+							textAlign: 'right',
+						}}
+					>
+						<Button
+							onClick={handleClose} style={{ marginRight: 8 }}
+							type='danger'
+						>
+							Cancel
+						</Button>
+					</div>
 				</Drawer>
 				<Icon
 					type="edit"
@@ -1119,23 +1167,23 @@ const Sales = props => {
   const saleEntriesCollection = database.collections.get(SaleEntry.table);
   const productsCollection = database.collections.get(Product.table);
 	const installmentsCollection = database.collections.get(Installment.table);
+	const myCollection = database.collections.get(Customer.table);
+
 
 	/*
 	database.action(async () => {
-		const values = await installmentsCollection.query().fetch();
+		const values = await myCollection.query().fetch();
 		console.log("###################");
 		console.log(values);
 		console.log("###################");
 		values.forEach(async ins => {
-			await ins.update(updatedIns => {
-				console.log(updatedIns);
-				updatedIns.companyId = MyLocal.companyId;
-			});
+			await ins.remove();
 		});
 	}).then(() => {
 		console.log("Done");
 	});
 	*/
+
 
 
   const createRecord = async (options) => {
@@ -1253,6 +1301,7 @@ const Sales = props => {
 					await installmentsCollection.create(installment => {
 						installment.sale.set(updatedSale);
 						installment.createdBy.set(user);
+						installment.companyId = company.id;
 						installment.amount = cashReceived <= (salesTotal - totalPaid - discount) ?  cashReceived : (salesTotal - totalPaid - discount);
 					});
 				}
@@ -1355,7 +1404,7 @@ const Sales = props => {
         {/*<DrawerIcon />*/}
         <div id="side-nav">
           <h3 id="company" onClick={() => history.push("home")}>
-            {company.name}
+						<Icon type='home'/>&nbsp; {company.name}
           </h3>
           <div id="nav-list">
             <Button
@@ -1432,33 +1481,34 @@ const Sales = props => {
 };
 
 const EnhancedSales = withDatabase(
-  withObservables(["searchConfig"], ({ database, searchConfig }) => ({
+  withObservables(["searchConfig"], ({ database, searchConfig, company }) => ({
     sales: database.collections
       .get(Sale.table)
       .query(
         Q.where(
           searchConfig.key,
           Q.like(`%${Q.sanitizeLikeString(searchConfig.value)}%`)
-        )
+        ),
+        Q.where("company_id", company.id)
       )
       .observe(),
     company: database.collections.get(Company.table).find(MyLocal.companyId),
     user: database.collections.get(User.table).find(MyLocal.userId),
     users: database.collections
       .get(User.table)
-      .query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
+      .query(Q.on(UserCompany.table, "company_id", MyLocal.companyId))
       .observe(),
     products: database.collections
       .get(Product.table)
-      .query()
+      .query(Q.where("company_id", company.id))
       .observe(),
     customers: database.collections
       .get(Customer.table)
-      .query()
+      .query(Q.where("company_id", company.id))
       .observe(),
     productPrices: database.collections
       .get(ProductPrice.table)
-      .query()
+      .query(Q.where("company_id", company.id))
       .observe()
   }))(withRouter(Sales))
 );

@@ -543,18 +543,41 @@ class Dashboard extends React.Component {
 
 
 const EnhancedDashboard = withDatabase(
-	withObservables([], ({ database }) => ({
-		company: database.collections.get(Company.table).find(MyLocal.companyId),
-		user: database.collections.get(User.table).find(MyLocal.userId),
-		users: database.collections.get(User.table).query(Q.on('users_companies', 'company_id', MyLocal.companyId)),
-		installments: database.collections.get(Installment.table).query().observe(),
-		expenses: database.collections.get(Expense.table).query().observe(),
-		expenseCategories: database.collections.get(ExpenseCategory.table).query().observe(),
-		sales: database.collections.get(Sale.table).query().observe(),
-		saleEntries: database.collections.get(SaleEntry.table).query().observe(),
-		products: database.collections.get(Product.table).query().observe(),
-		customers: database.collections.get(Customer.table).query().observe()
-	}))(withRouter(Dashboard))
+  withObservables([], ({ database }) => ({
+    company: database.collections.get(Company.table).find(MyLocal.companyId),
+    user: database.collections.get(User.table).find(MyLocal.userId),
+    users: database.collections
+      .get(User.table)
+      .query(Q.on("users_companies", "company_id", MyLocal.companyId)),
+    installments: database.collections
+      .get(Installment.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    expenses: database.collections
+      .get(Expense.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    expenseCategories: database.collections
+      .get(ExpenseCategory.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    sales: database.collections
+      .get(Sale.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    saleEntries: database.collections
+      .get(SaleEntry.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    products: database.collections
+      .get(Product.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe(),
+    customers: database.collections
+      .get(Customer.table)
+      .query(Q.where("company_id", MyLocal.companyId))
+      .observe()
+  }))(withRouter(Dashboard))
 );
 
 export default EnhancedDashboard;

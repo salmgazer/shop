@@ -3,6 +3,7 @@ import {field, date, readonly, relation} from '@nozbe/watermelondb/decorators';
 
 export default class Category extends Model {
   static table = 'categories';
+  static deletable = false;
 
   static associations = {
     products: { type: 'has_many', foreignKey: 'category_id' },

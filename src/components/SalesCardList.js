@@ -448,21 +448,19 @@ const CardListItem = props => {
                   <Col span={3}>
                     {
                       isInvoice() ?
-                        <Button type='primary' style={{marginLeft: '10px'}}>
-                          <EditComponent
-                            sale={entry}
-                            modelName={modelName}
-                            updateRecord={updateRecord}
-                            keyFieldName={keyFieldName}
-                            totalQuantity={totalQuantity}
-                            productPrices={productPrices}
-                            removeProductPrice={removeProductPrice}
-                            saveProductPrice={saveProductPrice}
-                            products={products}
-                            customers={customers}
-                            company={company}
-                          />
-                        </Button> : ''
+												<EditComponent
+													sale={entry}
+													modelName={modelName}
+													updateRecord={updateRecord}
+													keyFieldName={keyFieldName}
+													totalQuantity={totalQuantity}
+													productPrices={productPrices}
+													removeProductPrice={removeProductPrice}
+													saveProductPrice={saveProductPrice}
+													products={products}
+													customers={customers}
+													company={company}
+												/> : ''
                     }
                   </Col>
                 </Row>
@@ -513,7 +511,7 @@ const CardListItem = props => {
       </Grid>
       <Grid item xs={1} style={{ marginTop: "8px" }}>
 				<Avatar style={{}}>
-          {capitalize(userFirstName[0])}{capitalize(userLastName[0])}
+          {capitalize(userFirstName[0])}{capitalize(userLastName ? userLastName[0] : '')}
 				</Avatar>
       </Grid>
       <Grid item xs={1} container style={{ marginTop: "16px" }}>
@@ -643,7 +641,8 @@ class CardList extends React.Component {
             marginBottom: "15px",
             width: "85%",
             marginRight: "50px",
-            float: "right"
+            float: "right",
+						marginTop: "-3em"
           }}
         >
           <Grid
@@ -651,12 +650,14 @@ class CardList extends React.Component {
             xs={5}
             style={{
               color: "darkgrey",
+							marginLeft: "-4em",
+							marginRight: "3em"
             }}
           >
-            <b style={{color: 'black', fontWeight: 'normal'}}>Select customer: </b>
+            <b style={{color: 'black', fontWeight: 'normal'}}>Select customer: </b><br/>
 						<Select
 							showSearch
-							style={{ width: 200 }}
+							style={{ width: 300 }}
 							placeholder="Select a customer"
 							optionFilterProp="children"
 							onChange={(value) => this.setState({ selectedCustomerId: value})}
@@ -678,10 +679,10 @@ class CardList extends React.Component {
 							color: "darkgrey",
 						}}
 					>
-						<b style={{color: 'black', fontWeight: 'normal'}}>Select salesperson: </b>
+						<b style={{color: 'black', fontWeight: 'normal'}}>Select salesperson: </b><br/>
 						<Select
 							showSearch
-							style={{ width: 200 }}
+							style={{ width: 300 }}
 							placeholder="Select salesperson"
 							optionFilterProp="children"
 							onChange={(value) => this.setState({ selectedSalespersonId: value})}
@@ -696,8 +697,7 @@ class CardList extends React.Component {
 							}
 						</Select>
 					</Grid>
-          <Grid item xs={2} style={{ color: "grey" }}>
-            <p style={{ color: "grey", marginBottom: "-5px" }}>Action</p>
+          <Grid item xs={2}>
           </Grid>
         </Grid>
         <div className="list-div">

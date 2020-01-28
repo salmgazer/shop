@@ -128,17 +128,19 @@ class Sync extends React.Component{
 								/> : ''
 							}
 						</div>
-						<div id="bottom-area">
+						<div style={{ bottom: "1em", position: "absolute", display: "block", right: "1em" }}>
 							<Online>
 							<Button
 								shape='round'
-								type='primary'
 								style={{
-									fontSize: '30px',
 									backgroundColor: 'orange',
-									border: "2px solid white"
+									border: "2px solid white",
+									padding: "0.2em",
+									fontSize: "2em",
+									width: "5em",
+									height: "2em",
+									color: "white"
 								}}
-								className="sell-btn"
 								onClick={this.sync}
 							>
 								Sync

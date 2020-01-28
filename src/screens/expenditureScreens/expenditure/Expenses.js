@@ -171,7 +171,7 @@ const DrawerCreateComponent = props => {
                 </Col>
               </Row>
             </Form>
-            <Divider dashed/>
+            <Divider dashed />
             <Button
               type="danger"
               onClick={() => setState({ visible: false })}
@@ -181,7 +181,7 @@ const DrawerCreateComponent = props => {
             </Button>
             <Button
               htmlType="submit"
-              type='primary'
+              type="primary"
               onClick={e => {
                 handleSubmit(e);
                 setState({ visible: false });
@@ -190,21 +190,21 @@ const DrawerCreateComponent = props => {
               Save
             </Button>
           </Drawer>
-					<Button
-						onClick={() => setState({ visible: true })}
-						shape="circle"
-						icon="plus"
-						size='large'
-						style={{
-							float: 'right',
-							marginRight: '20px',
-							marginBottom: '20px',
-							backgroundColor: 'orange',
-							color: 'white',
-							width: '60px',
-							height: '60px'
-						}}
-					/>
+          <Button
+            onClick={() => setState({ visible: true })}
+            shape="circle"
+            icon="plus"
+            size="large"
+            style={{
+              float: "right",
+              marginRight: "20px",
+              marginBottom: "20px",
+              backgroundColor: "orange",
+              color: "white",
+              width: "60px",
+              height: "60px"
+            }}
+          />
         </React.Fragment>
       )}
     </Component>
@@ -356,23 +356,23 @@ const DrawerEditComponent = props => {
               </Row>
             </Form>
             <Divider dashed />
-						<Button
-							type="danger"
-							onClick={() => setState({ visible: false })}
-							style={{ marginRight: 20 }}
-						>
-							Cancel
-						</Button>
-						<Button
-							htmlType="submit"
-              type='primary'
-							onClick={e => {
-								handleSubmit(e);
-								setState({ visible: false });
-							}}
-						>
-							Save
-						</Button>
+            <Button
+              type="danger"
+              onClick={() => setState({ visible: false })}
+              style={{ marginRight: 20 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              htmlType="submit"
+              type="primary"
+              onClick={e => {
+                handleSubmit(e);
+                setState({ visible: false });
+              }}
+            >
+              Save
+            </Button>
           </Drawer>
           <Icon
             className="hand-pointer"
@@ -469,12 +469,14 @@ const Expenses = props => {
           <div className="bottom-area">
             <a onClick={() => history.push("sales")}>
               <Icon type="arrow-left" />
-							&nbsp; Sales
-            </a><br/><br/>
-						<a onClick={() => history.push("products")}>
-							<Icon type="arrow-left" />
-							&nbsp; Inventory
-						</a>
+              &nbsp; Sales
+            </a>
+            <br />
+            <br />
+            <a onClick={() => history.push("products")}>
+              <Icon type="arrow-left" />
+              &nbsp; Inventory
+            </a>
           </div>
         </div>
         <div id="main-body">
@@ -512,11 +514,11 @@ const EnhancedExpenses = withDatabase(
   withObservables([], ({ database }) => ({
     expenses: database.collections
       .get(Expense.table)
-      .query()
+      .query(Q.where("company_id", MyLocal.companyId))
       .observe(),
     expenseCategories: database.collections
       .get(ExpenseCategory.table)
-      .query()
+      .query(Q.where("company_id", MyLocal.companyId))
       .observe()
   }))(withRouter(Expenses))
 );
@@ -571,7 +573,7 @@ const EnhancedParent = withDatabase(
     user: database.collections.get("users").find(MyLocal.userId),
     users: database.collections
       .get(User.table)
-			.query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
+      .query(Q.on(UserCompany.table, "company_id", MyLocal.companyId))
       .observe()
   }))(withRouter(Parent))
 );

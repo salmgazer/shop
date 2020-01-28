@@ -16,7 +16,17 @@ import {
   Dialog
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
-import { Drawer, Icon, Form, Row, Col, Select, Input, Button, Divider } from "antd";
+import {
+  Drawer,
+  Icon,
+  Form,
+  Row,
+  Col,
+  Select,
+  Input,
+  Button,
+  Divider
+} from "antd";
 import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
@@ -86,7 +96,7 @@ const DrawerCreateComponent = props => {
                 </Col>
               </Row>
             </Form>
-            <Divider dashed/>
+            <Divider dashed />
             <Button
               type="danger"
               onClick={() => setState({ visible: false })}
@@ -96,7 +106,7 @@ const DrawerCreateComponent = props => {
             </Button>
             <Button
               htmlType="submit"
-              type='primary'
+              type="primary"
               onClick={e => {
                 handleSubmit(e);
                 setState({ visible: false });
@@ -105,21 +115,21 @@ const DrawerCreateComponent = props => {
               Save
             </Button>
           </Drawer>
-					<Button
-						onClick={() => setState({ visible: true })}
-						shape="circle"
-						icon="plus"
-						size='large'
-						style={{
-							float: 'right',
-							marginRight: '20px',
-							marginBottom: '20px',
-							backgroundColor: 'orange',
-							color: 'white',
-							width: '60px',
-							height: '60px'
-						}}
-					/>
+          <Button
+            onClick={() => setState({ visible: true })}
+            shape="circle"
+            icon="plus"
+            size="large"
+            style={{
+              float: "right",
+              marginRight: "20px",
+              marginBottom: "20px",
+              backgroundColor: "orange",
+              color: "white",
+              width: "60px",
+              height: "60px"
+            }}
+          />
         </React.Fragment>
       )}
     </Component>
@@ -191,7 +201,7 @@ const DrawerEditComponent = props => {
             </Button>
             <Button
               htmlType="submit"
-              type='primary'
+              type="primary"
               onClick={e => {
                 handleSubmit(e);
                 setState({ visible: false });
@@ -370,16 +380,18 @@ const Categories = props => {
             </button>
             <button className="nav-item active">Categories</button>
           </div>
-					<div className="bottom-area">
-						<a onClick={() => history.push("sales")}>
-							<Icon type="arrow-left" />
-							&nbsp; Sales
-						</a><br/><br/>
-						<a onClick={() => history.push("products")}>
-							<Icon type="arrow-left" />
-							&nbsp; Inventory
-						</a>
-					</div>
+          <div className="bottom-area">
+            <a onClick={() => history.push("sales")}>
+              <Icon type="arrow-left" />
+              &nbsp; Sales
+            </a>
+            <br />
+            <br />
+            <a onClick={() => history.push("products")}>
+              <Icon type="arrow-left" />
+              &nbsp; Inventory
+            </a>
+          </div>
         </div>
         <div id="main-body">
           <div>
@@ -418,15 +430,14 @@ const EnhancedCategories = withDatabase(
       .query(
         Q.where(
           searchConfig.key,
-          Q.like(`%${Q.sanitizeLikeString(searchConfig.value)}%`)
+          Q.like(`%${Q.sanitizeLikeString(searchConfig.value)}%`),
+          Q.where("company_id", MyLocal.companyId)
         )
       )
       .observe(),
-    company: database.collections.get(Company.table).find(MyLocal.companyId),
-    user: database.collections.get(User.table).find(MyLocal.userId),
     users: database.collections
       .get(User.table)
-			.query( Q.on(UserCompany.table, 'company_id', MyLocal.companyId))
+      .query(Q.on(UserCompany.table, "company_id", MyLocal.companyId))
       .observe()
   }))(withRouter(Categories))
 );

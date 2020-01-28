@@ -1,5 +1,5 @@
 #add-item {
-  margin: 0px auto 20px;
+  margin: 10px auto 20px;
   text-align: center;
   button {
     font-size: 30px;
@@ -24,11 +24,20 @@
 #calculator-view {
   text-align: center;
   width: 30%;
-  margin: 30px auto;
+  margin: 0.01em auto;
   box-shadow: 0 16px 32px 0 rgba(0, 0, 0, 0.2);
   padding: 50px;
   border-radius: 20px;
   transition: 0.3s;
+}
+
+#actual-sales-view {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  &:hover {
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    margin-bottom: 5em;
+  }
 }
 
 .sale-entry {
