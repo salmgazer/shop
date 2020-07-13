@@ -3,15 +3,12 @@ import { withDatabase } from "@nozbe/watermelondb/DatabaseProvider";
 import withObservables from "@nozbe/with-observables";
 import "./Sync.css";
 import { withRouter } from "react-router-dom";
-
 import PropTypes from "prop-types";
-import pluralize from "pluralize";
 import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
 import SyncService from "../../../services/SyncService";
 import { notification, Icon, Spin, Result, Button } from 'antd';
 import { Offline, Online } from "react-detect-offline";
-
 
 
 

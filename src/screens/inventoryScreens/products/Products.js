@@ -541,7 +541,10 @@ const Products = (props) => {
 	const productsCollection = database.collections.get(pluralize(modelName));
 	const productPricesCollection = database.collections.get(ProductPrice.table);
 
+
 	const createRecord = async (productToCreate, options={}) => {
+		console.log(productToCreate);
+		console.log(options);
 		await database.action(async () => {
 			if (productToCreate.costPrice > productToCreate.sellingPrice) {
 				message.error(`The product ${productToCreate.name} has cost price grater than selling price. You will be making a loss!`);

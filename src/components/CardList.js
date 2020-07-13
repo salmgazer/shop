@@ -4,7 +4,6 @@ import pluralize from "pluralize";
 import {
   Dialog,
   Pane,
-  SideSheet,
   Combobox,
   SearchInput
 } from "evergreen-ui";

@@ -27,7 +27,7 @@ export default class Sale extends Model {
 
 	@lazy
 	saleEntries = this.collections
-		.get('sale_entries').query(Q.where('sale_id', this.id));
+		.get('sale_entries').query(Q.where('saleId', this.id));
 
 	async remove() {
 		await this.markAsDeleted(); // syncable

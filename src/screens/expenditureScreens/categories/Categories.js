@@ -8,9 +8,6 @@ import { Q } from "@nozbe/watermelondb";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
-  SideSheet,
-  TextInput,
-  FilePicker,
   toaster,
   Pane,
   Dialog
@@ -22,18 +19,15 @@ import {
   Form,
   Row,
   Col,
-  Select,
   Input,
   Button,
   Divider
 } from "antd";
-import Papa from "papaparse";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import TopNav from "../../../components/TopNav";
 import ExpenseCategory from "../../../model/expenseCategories/ExpenseCategory";
 import User from "../../../model/users/User";
-import Company from "../../../model/companies/Company";
 import UserCompany from "../../../model/userCompanies/UserCompany";
 
 const fieldNames = [

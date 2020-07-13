@@ -2,6 +2,8 @@ import {synchronize} from "@nozbe/watermelondb/sync";
 
 const apiUrl = 'http://shopghapi-env.uk8emku5hg.eu-central-1.elasticbeanstalk.com';
 
+// const apiUrl = 'http://localhost:3500';
+
 export default class SyncService {
 	static async sync(company, database, userRole) {
 		console.log("ABOUT TO SYNC");

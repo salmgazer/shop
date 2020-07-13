@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import pluralize from "pluralize";
-import { Dialog, Pane, Combobox, SearchInput } from "evergreen-ui";
+import { Dialog, Pane, SearchInput } from "evergreen-ui";
 import { Col, Drawer, Icon, Row, Modal, Button, Tag, Divider} from "antd";
 import Grid from "@material-ui/core/Grid";
 import Component from "@reactions/component";
@@ -32,7 +32,6 @@ const CardListItem = props => {
 		modelName,
 		displayNameField,
 		fieldNames,
-		database
 	} = props;
 
   let totalQuantity = 0;

@@ -37,9 +37,7 @@ class Profile extends React.Component{
 			user,
 			company,
 			database,
-			history,
-			DrawerIcon,
-			modelName
+			history
 		} = this.props;
 
 		const {name, username, phone, email, address, currentPassword, newPassword, confirmNewPassword, disableForm} = this.state;

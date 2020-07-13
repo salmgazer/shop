@@ -612,7 +612,6 @@ class CardList extends React.Component {
       modelName,
       saveProductPrice,
       keyFieldName,
-      search,
       user,
       users,
       products,

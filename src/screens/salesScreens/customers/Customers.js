@@ -9,11 +9,9 @@ import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import {
   Avatar,
-  FilePicker,
-  SideSheet
   // eslint-disable-next-line import/no-unresolved
 } from "evergreen-ui";
-import { Button, Col, Drawer, Icon, Input, message, Row } from "antd";
+import { Button, Drawer, Icon, Input } from "antd";
 import CardList from "../../../components/CardList";
 import MyLocal from "../../../services/MyLocal";
 import User from "../../../model/users/User";

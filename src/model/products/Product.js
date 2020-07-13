@@ -20,9 +20,9 @@ export default class Product extends Model {
   @field('brand_id') brandId;
   @field('category_id') categoryId;
   @relation('brands', 'brand_id') brand;
-	@relation('categories', 'category_id') category;
-	@field('company_id') companyId;
-	@relation('users', 'created_by') createdBy;
+  @relation('categories', 'category_id') category;
+  @field('company_id') companyId;
+  @relation('users', 'created_by') createdBy;
   @readonly @date('created_at') createdAt;
   @readonly @date('updated_at') updatedAt;
 

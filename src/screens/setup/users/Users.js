@@ -5,7 +5,6 @@ import { withRouter } from "react-router-dom";
 import "./Users.scss";
 import Component from "@reactions/component";
 import { Q } from "@nozbe/watermelondb";
-import PropTypes from "prop-types";
 import pluralize from "pluralize";
 import Grid from "@material-ui/core/Grid";
 import {
@@ -319,8 +318,7 @@ const Users = props => {
     history,
     search,
     DrawerIcon,
-    modelName,
-    company
+    modelName
   } = props;
   const usersCollection = database.collections.get(pluralize(modelName));
 

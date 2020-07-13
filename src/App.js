@@ -111,7 +111,7 @@ class App extends React.Component {
 
   render() {
     let { companyCode } = MyLocal;
-    const { companyName, companyId } = MyLocal;
+    const { companyName } = MyLocal;
 
     if (!MyLocal.sessionExists()) {
       const splitPath = window.location.pathname.split("/");

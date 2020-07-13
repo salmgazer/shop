@@ -1,6 +1,5 @@
 import { Model } from '@nozbe/watermelondb';
 import {field, date, readonly} from '@nozbe/watermelondb/decorators';
-import { lazy } from '@nozbe/watermelondb/decorators'
 import { Q } from '@nozbe/watermelondb';
 
 
